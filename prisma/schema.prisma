@@ -9,6 +9,33 @@ datasource db {
 enum Role {
   super_admin
   pg_owner
+  pg_staff
+}
+
+enum PGType {
+  Boys
+  Girls
+  CoLiving
+}
+
+enum RoomType {
+  AC
+  NonAC
+}
+
+enum UserRole {
+  Owner
+  Manager
+}
+
+enum UserStatus {
+  active
+  inactive
+}
+
+enum PGStatus {
+  active
+  inactive
 }
 
 model User {
@@ -51,6 +78,72 @@ model Bed {
   number    String   @unique
   room      String
   status    String   @default("vacant")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// PG (Paying Guest) Models
+model PG {
+  id               Int       @id @default(autoincrement())
+  pgName           String
+  ownerName        String
+  ownerPhone       String
+  ownerEmail       String    @unique
+  addressLine1     String
+  addressLine2     String?
+  nearbyMark       String?
+  area             String
+  city             String
+  state            String
+  latitude         Float
+  longitude        Float
+  pgType           PGType
+  numberOfRooms    Int
+  isFoodAvailable  Boolean   @default(false)
+  status           PGStatus  @default(active)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  rooms            PGRoom[]
+  staff            PGStaff[]
+  photos           PGPhoto[]
+}
+
+model PGRoom {
+  id              Int      @id @default(autoincrement())
+  pgId            Int
+  pg              PG       @relation(fields: [pgId], references: [id], onDelete: Cascade)
+  roomType        String
+  roomNumber      String
+  totalBeds       Int
+  availableBeds   Int
+  pricePerBed     Int
+  acType          RoomType
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([pgId, roomNumber])
+}
+
+model PGStaff {
+  id        Int        @id @default(autoincrement())
+  pgId      Int
+  pg        PG         @relation(fields: [pgId], references: [id], onDelete: Cascade)
+  name      String
+  email     String
+  phone     String
+  role      UserRole
+  username  String     @unique
+  password  String
+  status    UserStatus @default(active)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model PGPhoto {
+  id        Int      @id @default(autoincrement())
+  pgId      Int
+  pg        PG       @relation(fields: [pgId], references: [id], onDelete: Cascade)
+  photoUrl  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
