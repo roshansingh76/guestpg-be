@@ -7,9 +7,14 @@ datasource db {
 }
 
 enum Role {
-  super_admin
+  admin
   pg_owner
   pg_staff
+}
+
+enum UserStatus {
+  active
+  inactive
 }
 
 enum PGType {
@@ -28,24 +33,23 @@ enum UserRole {
   Manager
 }
 
-enum UserStatus {
-  active
-  inactive
-}
-
 enum PGStatus {
   active
   inactive
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
+  id           Int        @id @default(autoincrement())
   name         String
-  email        String   @unique
+  email        String     @unique
+  phone        String
   passwordHash String
-  role         Role     @default(pg_owner)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  role         Role       @default(pg_owner)
+  status       UserStatus @default(active)
+  pgId         Int?
+  pg           PG?        @relation(fields: [pgId], references: [id], onDelete: SetNull)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
 
 model Guest {
@@ -106,6 +110,7 @@ model PG {
   rooms            PGRoom[]
   staff            PGStaff[]
   photos           PGPhoto[]
+  users            User[]
 }
 
 model PGRoom {

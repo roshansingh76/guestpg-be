@@ -3,6 +3,7 @@ import authRoutes from './auth.routes'
 import guestRoutes from './guest.routes'
 import pgRoutes from './pg.routes'
 import pgAuthRoutes from './pgAuth.routes'
+import userRoutes from './user.routes'
 
 const router = Router()
 
@@ -12,6 +13,7 @@ router.use('/auth', authRoutes)
 router.use('/guests', guestRoutes)
 router.use('/pgs', pgRoutes)
 router.use('/pg-auth', pgAuthRoutes)
+router.use('/users', userRoutes)
 
 export default router
 
