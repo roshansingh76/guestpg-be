@@ -70,16 +70,6 @@ export class UserService {
     const [users, total] = await Promise.all([
       prisma.user.findMany({
         where,
-        include: {
-          pg: {
-            select: {
-              id: true,
-              pgName: true,
-              city: true,
-              state: true,
-            },
-          },
-        },
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -91,7 +81,14 @@ export class UserService {
           role: true,
           status: true,
           pgId: true,
-          pg: true,
+          pg: {
+            select: {
+              id: true,
+              pgName: true,
+              city: true,
+              state: true,
+            },
+          },
           createdAt: true,
           updatedAt: true,
         },
@@ -114,7 +111,14 @@ export class UserService {
   static async getUserById(id: number) {
     const user = await prisma.user.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        status: true,
+        pgId: true,
         pg: {
           select: {
             id: true,
@@ -124,16 +128,6 @@ export class UserService {
             pgType: true,
           },
         },
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        role: true,
-        status: true,
-        pgId: true,
-        pg: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -160,16 +154,6 @@ export class UserService {
     const user = await prisma.user.update({
       where: { id },
       data: updateData,
-      include: {
-        pg: {
-          select: {
-            id: true,
-            pgName: true,
-            city: true,
-            state: true,
-          },
-        },
-      },
       select: {
         id: true,
         name: true,
@@ -178,7 +162,14 @@ export class UserService {
         role: true,
         status: true,
         pgId: true,
-        pg: true,
+        pg: {
+          select: {
+            id: true,
+            pgName: true,
+            city: true,
+            state: true,
+          },
+        },
         createdAt: true,
         updatedAt: true,
       },

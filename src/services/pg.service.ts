@@ -1,5 +1,5 @@
 import { prisma } from '../db/prisma'
-import { PGStatus } from '@prisma/client'
+import { PGStatus, PGType } from '@prisma/client'
 
 export interface CreatePGInput {
   pgName: string
@@ -14,7 +14,7 @@ export interface CreatePGInput {
   state: string
   latitude: number
   longitude: number
-  pgType: string
+  pgType: PGType
   numberOfRooms: number
   isFoodAvailable?: boolean
 }
@@ -32,7 +32,7 @@ export interface UpdatePGInput {
   state?: string
   latitude?: number
   longitude?: number
-  pgType?: string
+  pgType?: PGType
   numberOfRooms?: number
   isFoodAvailable?: boolean
   status?: PGStatus

@@ -12,8 +12,8 @@ export function authRequired(req: Request, res: Response, next: NextFunction) {
   const token = header?.startsWith('Bearer ') ? header.slice(7) : null
   if (!token) return res.status(401).json({ message: 'Missing token' })
   try {
-    const payload = jwt.verify(token, jwtSecret()) as AuthPayload
-    ;(req as any).auth = payload
+    const payload = jwt.verify(token, jwtSecret()) as unknown as AuthPayload
+      ; (req as any).auth = payload
     return next()
   } catch {
     return res.status(401).json({ message: 'Invalid token' })
