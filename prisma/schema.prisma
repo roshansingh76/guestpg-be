@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  super_admin
+  pg_owner
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(pg_owner)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Guest {
+  id             Int      @id @default(autoincrement())
+  name           String
+  phone          String
+  aadhar         String
+  address        String?
+  emergency      String?
+  emergencyPhone String?
+  joiningDate    DateTime @default(now())
+  status         String   @default("active")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Room {
+  id            Int      @id @default(autoincrement())
+  number        String   @unique
+  type          String
+  totalBeds     Int
+  availableBeds Int
+  rent          Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Bed {
+  id        Int      @id @default(autoincrement())
+  number    String   @unique
+  room      String
+  status    String   @default("vacant")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
