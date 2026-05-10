@@ -140,14 +140,16 @@ export class PGService {
       where: { status: 'active' },
     })
     const totalRooms = await prisma.pGRoom.count()
-    const totalStaff = await prisma.pGStaff.count()
+    const totalUsers = await prisma.user.count({
+      where: { role: { in: ['pg_owner', 'pg_staff'] } },
+    })
 
     return {
       totalPGs,
       activePGs,
       inactivePGs: totalPGs - activePGs,
       totalRooms,
-      totalStaff,
+      totalUsers,
     }
   }
 }
