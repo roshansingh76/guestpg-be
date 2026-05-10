@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 
-export type AuthPayload = { sub: number; role: string; email: string }
+export type AuthPayload = { sub: number; role: string; email: string; pgId: number | null }
 
 function jwtSecret() {
   return process.env.JWT_SECRET || 'dev-secret-change-me'
@@ -20,3 +20,11 @@ export function authRequired(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+export function requireRole(...roles: string[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const auth = (req as any).auth as AuthPayload
+    if (!auth || !roles.includes(auth.role))
+      return res.status(403).json({ message: 'Forbidden' })
+    return next()
+  }
+}

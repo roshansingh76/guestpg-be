@@ -21,6 +21,9 @@ router.get('/', getAllUsers)
 // Get available PGs for assignment
 router.get('/pgs/available', getAvailablePGs)
 
+// Get users by PG
+router.get('/pg/:pgId', getUsersByPG)
+
 // Get user by ID
 router.get('/:id', getUserById)
 
@@ -32,8 +35,5 @@ router.delete('/:id', deleteUser)
 
 // Change user status
 router.patch('/:id/status', changeUserStatus)
-
-// Get users by PG
-router.get('/pg/:pgId', getUsersByPG)
 
 export default router

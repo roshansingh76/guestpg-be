@@ -59,7 +59,6 @@ export const createPG = async (req: Request, res: Response) => {
       },
       include: {
         rooms: true,
-        staff: true,
         photos: true,
       },
     })
@@ -98,7 +97,6 @@ export const getAllPGs = async (req: Request, res: Response) => {
         where,
         include: {
           rooms: true,
-          staff: true,
           photos: true,
         },
         skip,
@@ -134,7 +132,6 @@ export const getPGById = async (req: Request, res: Response) => {
       where: { id: Number(id) },
       include: {
         rooms: true,
-        staff: true,
         photos: true,
       },
     })
@@ -163,7 +160,6 @@ export const updatePG = async (req: Request, res: Response) => {
       data: updateData,
       include: {
         rooms: true,
-        staff: true,
         photos: true,
       },
     })
@@ -228,7 +224,6 @@ export const changePGStatus = async (req: Request, res: Response) => {
       data: { status },
       include: {
         rooms: true,
-        staff: true,
         photos: true,
       },
     })

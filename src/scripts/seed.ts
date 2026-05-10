@@ -10,7 +10,7 @@ async function main() {
     where: { email: adminEmail },
     update: {
       name: 'Super Admin',
-      role: 'admin',
+      role: 'super_admin',
       phone: '0000000000',
       passwordHash: bcrypt.hashSync('password', 10),
     },
@@ -18,7 +18,7 @@ async function main() {
       name: 'Super Admin',
       email: adminEmail,
       phone: '0000000000',
-      role: 'admin',
+      role: 'super_admin',
       passwordHash: bcrypt.hashSync('password', 10),
     },
   })

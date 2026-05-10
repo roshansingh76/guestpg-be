@@ -45,7 +45,6 @@ export class PGService {
       data,
       include: {
         rooms: true,
-        staff: true,
         photos: true,
       },
     })
@@ -74,7 +73,6 @@ export class PGService {
         where,
         include: {
           rooms: true,
-          staff: true,
           photos: true,
         },
         skip,
@@ -101,7 +99,6 @@ export class PGService {
       where: { id },
       include: {
         rooms: true,
-        staff: true,
         photos: true,
       },
     })
@@ -114,7 +111,6 @@ export class PGService {
       data,
       include: {
         rooms: true,
-        staff: true,
         photos: true,
       },
     })

@@ -1,9 +1,16 @@
-import { PrismaClient } from '@prisma/client'
+import 'dotenv/config'
+import { defineConfig } from 'prisma/config'
 import { PrismaPg } from '@prisma/adapter-pg'
 
 const connectionString = process.env.DATABASE_URL ||
     `postgresql://${process.env.DB_USERNAME || 'postgres'}:${process.env.DB_PASSWORD || 'postgres'}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '5432'}/${process.env.DB_NAME || 'guestpg'}?schema=${process.env.DB_SCHEMA || 'public'}`
 
-const adapter = new PrismaPg({ connectionString })
-
-export const prisma = new PrismaClient({ adapter })
+export default defineConfig({
+    schema: 'prisma/schema.prisma',
+    datasource: {
+        url: connectionString,
+    },
+    migrate: {
+        adapter: () => new PrismaPg({ connectionString }),
+    },
+})

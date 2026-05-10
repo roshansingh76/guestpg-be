@@ -15,18 +15,20 @@ import {
   deleteRoom,
 } from '../controllers/pgRoom.controller'
 import {
-  createPGStaff,
-  getPGStaff,
-  getPGStaffById,
-  updatePGStaff,
-  deletePGStaff,
-  changePGStaffStatus,
-} from '../controllers/pgStaff.controller'
-import {
   addPGPhoto,
   getPGPhotos,
   deletePGPhoto,
 } from '../controllers/pgPhoto.controller'
+import {
+  createBed,
+  getBedsByRoom,
+  getBedsByPG,
+  updateBed,
+  deleteBed,
+} from '../controllers/pgBed.controller'
+import expenseRoutes from './expense.routes'
+import guestRoutes from './guest.routes'
+import billingRoutes from './billing.routes'
 
 const router = Router()
 
@@ -65,25 +67,6 @@ router.put('/:pgId/rooms/:roomId', updateRoom)
 // Delete room
 router.delete('/:pgId/rooms/:roomId', deleteRoom)
 
-// ============ PG Staff Routes ============
-// Create staff member
-router.post('/:pgId/staff', createPGStaff)
-
-// Get all staff members
-router.get('/:pgId/staff', getPGStaff)
-
-// Get staff member by ID
-router.get('/:pgId/staff/:staffId', getPGStaffById)
-
-// Update staff member
-router.put('/:pgId/staff/:staffId', updatePGStaff)
-
-// Delete staff member
-router.delete('/:pgId/staff/:staffId', deletePGStaff)
-
-// Change staff member status
-router.patch('/:pgId/staff/:staffId/status', changePGStaffStatus)
-
 // ============ PG Photo Routes ============
 // Add photo
 router.post('/:pgId/photos', addPGPhoto)
@@ -93,5 +76,21 @@ router.get('/:pgId/photos', getPGPhotos)
 
 // Delete photo
 router.delete('/:pgId/photos/:photoId', deletePGPhoto)
+
+// ============ PG Bed Routes ============
+router.post('/:pgId/rooms/:roomId/beds', createBed)
+router.get('/:pgId/rooms/:roomId/beds', getBedsByRoom)
+router.get('/:pgId/beds', getBedsByPG)
+router.put('/:pgId/rooms/:roomId/beds/:bedId', updateBed)
+router.delete('/:pgId/rooms/:roomId/beds/:bedId', deleteBed)
+
+// ============ Expense Routes ============
+router.use('/:pgId/expenses', expenseRoutes)
+
+// ============ Guest / Tenant Routes ============
+router.use('/:pgId/guests', guestRoutes)
+
+// ============ Billing Routes ============
+router.use('/:pgId/bills', billingRoutes)
 
 export default router
