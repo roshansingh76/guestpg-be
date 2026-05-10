@@ -1,9 +1,14 @@
 # --- Build stage ---
 FROM node:20-alpine AS builder
 
-WORKDIR /var/www/html/node-aws
+WORKDIR /app
 
+# Copy package files and prisma schema before npm install
+# so postinstall (prisma generate) can find the schema
 COPY package*.json ./
+COPY prisma ./prisma
+COPY prisma.config.ts ./
+
 RUN npm install
 
 COPY . .
@@ -14,12 +19,12 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# ✅ This refers to the stage "builder" defined above
-COPY --from=builder /var/www/html/node-aws/package*.json ./
-COPY --from=builder /var/www/html/node-aws/dist ./dist
-
-RUN npm install --only=production
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./
+COPY --from=builder /app/node_modules ./node_modules
 
 EXPOSE 8585
 
-CMD ["node", "dist/index.js"]
+CMD ["npm", "start"]
