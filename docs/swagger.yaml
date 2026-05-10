@@ -1,0 +1,1520 @@
+openapi: 3.0.3
+info:
+  title: Flexi Roomz Admin API
+  version: 1.0.0
+  description: API documentation for the Flexi Roomz admin backend.
+servers:
+  - url: http://localhost:3000/api
+    description: Local development server
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /auth/login:
+    post:
+      summary: Login and receive JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/profile:
+    get:
+      summary: Get current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/change-password:
+    put:
+      summary: Change authenticated user password
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currentPassword:
+                  type: string
+                newPassword:
+                  type: string
+              required:
+                - currentPassword
+                - newPassword
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /pgs:
+    post:
+      summary: Create a new PG
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PGCreateRequest'
+      responses:
+        '201':
+          description: PG created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PG'
+    get:
+      summary: List all PGs
+      responses:
+        '200':
+          description: PG list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PG'
+
+  /pgs/{id}:
+    get:
+      summary: Get PG by ID
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+      responses:
+        '200':
+          description: PG details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PG'
+    put:
+      summary: Update PG
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PGUpdateRequest'
+      responses:
+        '200':
+          description: PG updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PG'
+    delete:
+      summary: Delete PG
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+      responses:
+        '204':
+          description: PG deleted
+
+  /pgs/{id}/status:
+    patch:
+      summary: Change PG status
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - active
+                    - inactive
+              required:
+                - status
+      responses:
+        '200':
+          description: PG status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PG'
+
+  /pgs/{pgId}/rooms:
+    post:
+      summary: Create a room for a PG
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PGRoomCreateRequest'
+      responses:
+        '201':
+          description: Room created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PGRoom'
+    get:
+      summary: Get all rooms for a PG
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+      responses:
+        '200':
+          description: Rooms list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PGRoom'
+
+  /pgs/{pgId}/rooms/{roomId}:
+    get:
+      summary: Get room by ID
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/RoomId'
+      responses:
+        '200':
+          description: Room details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PGRoom'
+    put:
+      summary: Update room
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/RoomId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PGRoomUpdateRequest'
+      responses:
+        '200':
+          description: Room updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PGRoom'
+    delete:
+      summary: Delete room
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/RoomId'
+      responses:
+        '204':
+          description: Room deleted
+
+  /pgs/{pgId}/photos:
+    post:
+      summary: Add a photo to a PG
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                photoUrl:
+                  type: string
+              required:
+                - photoUrl
+      responses:
+        '201':
+          description: Photo created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PGPhoto'
+    get:
+      summary: List all photos for a PG
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+      responses:
+        '200':
+          description: Photos list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PGPhoto'
+
+  /pgs/{pgId}/photos/{photoId}:
+    delete:
+      summary: Delete a PG photo
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/PhotoId'
+      responses:
+        '204':
+          description: Photo deleted
+
+  /pgs/{pgId}/rooms/{roomId}/beds:
+    post:
+      summary: Create a bed in a room
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/RoomId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PGBedCreateRequest'
+      responses:
+        '201':
+          description: Bed created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PGBed'
+    get:
+      summary: List beds in a room
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/RoomId'
+      responses:
+        '200':
+          description: Beds list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PGBed'
+
+  /pgs/{pgId}/beds:
+    get:
+      summary: Get all beds for a PG
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+      responses:
+        '200':
+          description: Beds list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PGBed'
+
+  /pgs/{pgId}/rooms/{roomId}/beds/{bedId}:
+    put:
+      summary: Update a bed
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/RoomId'
+        - $ref: '#/components/parameters/BedId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PGBedUpdateRequest'
+      responses:
+        '200':
+          description: Bed updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PGBed'
+    delete:
+      summary: Delete a bed
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/RoomId'
+        - $ref: '#/components/parameters/BedId'
+      responses:
+        '204':
+          description: Bed deleted
+
+  /pgs/{pgId}/expenses/summary:
+    get:
+      summary: Get expense summary for a PG
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+      responses:
+        '200':
+          description: Expense summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalExpenses:
+                    type: number
+                  categories:
+                    type: object
+                    additionalProperties:
+                      type: number
+
+  /pgs/{pgId}/expenses:
+    get:
+      summary: List expenses for a PG
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+      responses:
+        '200':
+          description: Expense list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Expense'
+    post:
+      summary: Create an expense for a PG
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpenseCreateRequest'
+      responses:
+        '201':
+          description: Expense created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Expense'
+
+  /pgs/{pgId}/expenses/{expenseId}:
+    get:
+      summary: Get expense by ID
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/ExpenseId'
+      responses:
+        '200':
+          description: Expense details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Expense'
+    put:
+      summary: Update an expense
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/ExpenseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpenseUpdateRequest'
+      responses:
+        '200':
+          description: Expense updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Expense'
+    delete:
+      summary: Delete an expense
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/ExpenseId'
+      responses:
+        '204':
+          description: Expense deleted
+
+  /pgs/{pgId}/guests:
+    get:
+      summary: List guests in a PG
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+      responses:
+        '200':
+          description: Guests list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Guest'
+    post:
+      summary: Create guest
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GuestCreateRequest'
+      responses:
+        '201':
+          description: Guest created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Guest'
+
+  /pgs/{pgId}/guests/{id}:
+    get:
+      summary: Get guest by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/GuestId'
+      responses:
+        '200':
+          description: Guest details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Guest'
+    put:
+      summary: Update a guest
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/GuestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GuestUpdateRequest'
+      responses:
+        '200':
+          description: Guest updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Guest'
+    patch:
+      summary: Checkout a guest
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/GuestId'
+      responses:
+        '200':
+          description: Guest checked out
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Guest'
+    delete:
+      summary: Delete guest
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/GuestId'
+      responses:
+        '204':
+          description: Guest deleted
+
+  /pgs/{pgId}/bills/generate:
+    post:
+      summary: Generate bills for a PG
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+      responses:
+        '200':
+          description: Bills generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /pgs/{pgId}/bills:
+    get:
+      summary: List bills for a PG
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+      responses:
+        '200':
+          description: Bill list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RentBill'
+
+  /pgs/{pgId}/bills/overdue:
+    get:
+      summary: Get overdue bills for a PG
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+      responses:
+        '200':
+          description: Overdue bills list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RentBill'
+
+  /pgs/{pgId}/bills/{billId}:
+    get:
+      summary: Get bill by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/BillId'
+      responses:
+        '200':
+          description: Bill details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RentBill'
+
+  /pgs/{pgId}/bills/{billId}/receipt:
+    get:
+      summary: Get bill receipt
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/BillId'
+      responses:
+        '200':
+          description: Receipt details or URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  receiptUrl:
+                    type: string
+                  message:
+                    type: string
+
+  /pgs/{pgId}/bills/{billId}/payments:
+    post:
+      summary: Record a payment for a bill
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/BillId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentCreateRequest'
+      responses:
+        '201':
+          description: Payment recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+
+  /users:
+    post:
+      summary: Create a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    get:
+      summary: List users
+      responses:
+        '200':
+          description: User list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+  /users/pgs/available:
+    get:
+      summary: Get available PGs for assignment
+      responses:
+        '200':
+          description: Available PG list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PG'
+
+  /users/pg/{pgId}:
+    get:
+      summary: Get users by PG
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+      responses:
+        '200':
+          description: Users for PG
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    put:
+      summary: Update a user
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    delete:
+      summary: Delete a user
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '204':
+          description: User deleted
+
+  /users/{id}/status:
+    patch:
+      summary: Change user status
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - active
+                    - inactive
+              required:
+                - status
+      responses:
+        '200':
+          description: User status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  parameters:
+    PGId:
+      name: pgId
+      in: path
+      required: true
+      schema:
+        type: integer
+    RoomId:
+      name: roomId
+      in: path
+      required: true
+      schema:
+        type: integer
+    BedId:
+      name: bedId
+      in: path
+      required: true
+      schema:
+        type: integer
+    PhotoId:
+      name: photoId
+      in: path
+      required: true
+      schema:
+        type: integer
+    ExpenseId:
+      name: expenseId
+      in: path
+      required: true
+      schema:
+        type: integer
+    BillId:
+      name: billId
+      in: path
+      required: true
+      schema:
+        type: integer
+    UserId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum:
+            - admin
+            - super_admin
+            - pg_owner
+            - pg_staff
+        status:
+          type: string
+          enum:
+            - active
+            - inactive
+        pgId:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    UserCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+        pgId:
+          type: integer
+      required:
+        - name
+        - email
+        - phone
+        - password
+    UserUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+        status:
+          type: string
+        pgId:
+          type: integer
+    PG:
+      type: object
+      properties:
+        id:
+          type: integer
+        pgName:
+          type: string
+        ownerName:
+          type: string
+        ownerPhone:
+          type: string
+        ownerEmail:
+          type: string
+        addressLine1:
+          type: string
+        addressLine2:
+          type: string
+          nullable: true
+        nearbyMark:
+          type: string
+          nullable: true
+        area:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        pgType:
+          type: string
+          enum:
+            - Boys
+            - Girls
+            - CoLiving
+        numberOfRooms:
+          type: integer
+        isFoodAvailable:
+          type: boolean
+        status:
+          type: string
+          enum:
+            - active
+            - inactive
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    PGCreateRequest:
+      type: object
+      properties:
+        pgName:
+          type: string
+        ownerName:
+          type: string
+        ownerPhone:
+          type: string
+        ownerEmail:
+          type: string
+        addressLine1:
+          type: string
+        addressLine2:
+          type: string
+        nearbyMark:
+          type: string
+        area:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        pgType:
+          type: string
+          enum:
+            - Boys
+            - Girls
+            - CoLiving
+        numberOfRooms:
+          type: integer
+        isFoodAvailable:
+          type: boolean
+      required:
+        - pgName
+        - ownerName
+        - ownerPhone
+        - ownerEmail
+        - addressLine1
+        - area
+        - city
+        - state
+        - latitude
+        - longitude
+        - pgType
+        - numberOfRooms
+    PGUpdateRequest:
+      type: object
+      properties:
+        pgName:
+          type: string
+        ownerName:
+          type: string
+        ownerPhone:
+          type: string
+        ownerEmail:
+          type: string
+        addressLine1:
+          type: string
+        addressLine2:
+          type: string
+        nearbyMark:
+          type: string
+        area:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        pgType:
+          type: string
+          enum:
+            - Boys
+            - Girls
+            - CoLiving
+        numberOfRooms:
+          type: integer
+        isFoodAvailable:
+          type: boolean
+        status:
+          type: string
+          enum:
+            - active
+            - inactive
+    PGRoom:
+      type: object
+      properties:
+        id:
+          type: integer
+        pgId:
+          type: integer
+        roomType:
+          type: string
+        roomNumber:
+          type: string
+        totalBeds:
+          type: integer
+        availableBeds:
+          type: integer
+        pricePerBed:
+          type: integer
+        acType:
+          type: string
+          enum:
+            - AC
+            - NonAC
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    PGRoomCreateRequest:
+      type: object
+      properties:
+        roomType:
+          type: string
+        roomNumber:
+          type: string
+        totalBeds:
+          type: integer
+        availableBeds:
+          type: integer
+        pricePerBed:
+          type: integer
+        acType:
+          type: string
+          enum:
+            - AC
+            - NonAC
+      required:
+        - roomType
+        - roomNumber
+        - totalBeds
+        - availableBeds
+        - pricePerBed
+        - acType
+    PGRoomUpdateRequest:
+      type: object
+      properties:
+        roomType:
+          type: string
+        roomNumber:
+          type: string
+        totalBeds:
+          type: integer
+        availableBeds:
+          type: integer
+        pricePerBed:
+          type: integer
+        acType:
+          type: string
+          enum:
+            - AC
+            - NonAC
+    PGPhoto:
+      type: object
+      properties:
+        id:
+          type: integer
+        pgId:
+          type: integer
+        photoUrl:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    PGBed:
+      type: object
+      properties:
+        id:
+          type: integer
+        pgId:
+          type: integer
+        roomId:
+          type: integer
+        bedNumber:
+          type: string
+        status:
+          type: string
+          enum:
+            - vacant
+            - occupied
+            - reserved
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    PGBedCreateRequest:
+      type: object
+      properties:
+        bedNumber:
+          type: string
+        status:
+          type: string
+          enum:
+            - vacant
+            - occupied
+            - reserved
+      required:
+        - bedNumber
+    PGBedUpdateRequest:
+      type: object
+      properties:
+        bedNumber:
+          type: string
+        status:
+          type: string
+          enum:
+            - vacant
+            - occupied
+            - reserved
+    Expense:
+      type: object
+      properties:
+        id:
+          type: integer
+        pgId:
+          type: integer
+        category:
+          type: string
+          enum:
+            - rent
+            - electricity
+            - water
+            - maintenance
+            - salary
+            - food
+            - internet
+            - other
+        amount:
+          type: number
+        description:
+          type: string
+          nullable: true
+        date:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ExpenseCreateRequest:
+      type: object
+      properties:
+        category:
+          type: string
+          enum:
+            - rent
+            - electricity
+            - water
+            - maintenance
+            - salary
+            - food
+            - internet
+            - other
+        amount:
+          type: number
+        description:
+          type: string
+        date:
+          type: string
+          format: date-time
+      required:
+        - category
+        - amount
+    ExpenseUpdateRequest:
+      type: object
+      properties:
+        category:
+          type: string
+          enum:
+            - rent
+            - electricity
+            - water
+            - maintenance
+            - salary
+            - food
+            - internet
+            - other
+        amount:
+          type: number
+        description:
+          type: string
+        date:
+          type: string
+          format: date-time
+    Guest:
+      type: object
+      properties:
+        id:
+          type: integer
+        pgId:
+          type: integer
+        bedId:
+          type: integer
+          nullable: true
+        name:
+          type: string
+        phone:
+          type: string
+        aadhar:
+          type: string
+        address:
+          type: string
+          nullable: true
+        emergency:
+          type: string
+          nullable: true
+        emergencyPhone:
+          type: string
+          nullable: true
+        idProofUrl:
+          type: string
+          nullable: true
+        photoUrl:
+          type: string
+          nullable: true
+        moveInDate:
+          type: string
+          format: date-time
+        moveOutDate:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    GuestCreateRequest:
+      type: object
+      properties:
+        bedId:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        aadhar:
+          type: string
+        address:
+          type: string
+        emergency:
+          type: string
+        emergencyPhone:
+          type: string
+        idProofUrl:
+          type: string
+        photoUrl:
+          type: string
+        moveInDate:
+          type: string
+          format: date-time
+      required:
+        - name
+        - phone
+        - aadhar
+    GuestUpdateRequest:
+      type: object
+      properties:
+        bedId:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        aadhar:
+          type: string
+        address:
+          type: string
+        emergency:
+          type: string
+        emergencyPhone:
+          type: string
+        idProofUrl:
+          type: string
+        photoUrl:
+          type: string
+        moveInDate:
+          type: string
+          format: date-time
+        moveOutDate:
+          type: string
+          format: date-time
+        status:
+          type: string
+    RentBill:
+      type: object
+      properties:
+        id:
+          type: integer
+        pgId:
+          type: integer
+        guestId:
+          type: integer
+        billMonth:
+          type: integer
+        billYear:
+          type: integer
+        rentAmount:
+          type: number
+        totalAmount:
+          type: number
+        paidAmount:
+          type: number
+        dueAmount:
+          type: number
+        dueDate:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum:
+            - draft
+            - pending
+            - partial
+            - paid
+            - overdue
+        notes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BillItem'
+        payments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Payment'
+    BillItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        billId:
+          type: integer
+        label:
+          type: string
+        amount:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+    Payment:
+      type: object
+      properties:
+        id:
+          type: integer
+        billId:
+          type: integer
+        pgId:
+          type: integer
+        guestId:
+          type: integer
+        amount:
+          type: number
+        mode:
+          type: string
+          enum:
+            - cash
+            - upi
+            - bank_transfer
+            - cheque
+            - other
+        referenceNo:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        paidAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    PaymentCreateRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+        mode:
+          type: string
+          enum:
+            - cash
+            - upi
+            - bank_transfer
+            - cheque
+            - other
+        referenceNo:
+          type: string
+        note:
+          type: string
+      required:
+        - amount
+        - mode

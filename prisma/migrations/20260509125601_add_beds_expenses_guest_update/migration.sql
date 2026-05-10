@@ -33,11 +33,6 @@ ADD COLUMN     "moveOutDate" TIMESTAMP(3),
 ADD COLUMN     "pgId" INTEGER NOT NULL,
 ADD COLUMN     "photoUrl" TEXT;
 
--- AlterTable
-ALTER TABLE "User" ADD COLUMN     "pgId" INTEGER,
-ADD COLUMN     "phone" TEXT NOT NULL,
-ADD COLUMN     "status" "UserStatus" NOT NULL DEFAULT 'active';
-
 -- CreateTable
 CREATE TABLE "PGBed" (
     "id" SERIAL NOT NULL,
@@ -67,9 +62,6 @@ CREATE TABLE "Expense" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "PGBed_roomId_bedNumber_key" ON "PGBed"("roomId", "bedNumber");
-
--- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_pgId_fkey" FOREIGN KEY ("pgId") REFERENCES "PG"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Guest" ADD CONSTRAINT "Guest_pgId_fkey" FOREIGN KEY ("pgId") REFERENCES "PG"("id") ON DELETE CASCADE ON UPDATE CASCADE;

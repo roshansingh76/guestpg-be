@@ -1,5 +1,8 @@
 -- CreateEnum
-CREATE TYPE "Role" AS ENUM ('super_admin', 'pg_owner', 'pg_staff');
+CREATE TYPE "Role" AS ENUM ('admin', 'pg_owner', 'pg_staff');
+
+-- CreateEnum
+CREATE TYPE "UserStatus" AS ENUM ('active', 'inactive');
 
 -- CreateEnum
 CREATE TYPE "PGType" AS ENUM ('Boys', 'Girls', 'CoLiving');
@@ -11,9 +14,6 @@ CREATE TYPE "RoomType" AS ENUM ('AC', 'NonAC');
 CREATE TYPE "UserRole" AS ENUM ('Owner', 'Manager');
 
 -- CreateEnum
-CREATE TYPE "UserStatus" AS ENUM ('active', 'inactive');
-
--- CreateEnum
 CREATE TYPE "PGStatus" AS ENUM ('active', 'inactive');
 
 -- CreateTable
@@ -21,8 +21,11 @@ CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
     "passwordHash" TEXT NOT NULL,
     "role" "Role" NOT NULL DEFAULT 'pg_owner',
+    "status" "UserStatus" NOT NULL DEFAULT 'active',
+    "pgId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -158,6 +161,9 @@ CREATE UNIQUE INDEX "PGRoom_pgId_roomNumber_key" ON "PGRoom"("pgId", "roomNumber
 
 -- CreateIndex
 CREATE UNIQUE INDEX "PGStaff_username_key" ON "PGStaff"("username");
+
+-- AddForeignKey
+ALTER TABLE "User" ADD CONSTRAINT "User_pgId_fkey" FOREIGN KEY ("pgId") REFERENCES "PG"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "PGRoom" ADD CONSTRAINT "PGRoom_pgId_fkey" FOREIGN KEY ("pgId") REFERENCES "PG"("id") ON DELETE CASCADE ON UPDATE CASCADE;
