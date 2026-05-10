@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "tsx src/index.ts",
-    "start": "prisma migrate deploy && tsx src/scripts/seed.ts && node dist/index.js",
+    "start": "prisma migrate deploy && node dist/scripts/seed.js && node dist/index.js",
     "build": "prisma generate && tsc",
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
