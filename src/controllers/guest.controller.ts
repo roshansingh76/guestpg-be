@@ -63,11 +63,12 @@ export async function getGuest(req: Request, res: Response) {
 // Create guest (onboard tenant)
 export async function createGuest(req: Request, res: Response) {
   const pgId = Number(req.params.pgId)
+  if (!Number.isFinite(pgId) || pgId <= 0) return res.status(400).json({ message: 'Invalid pgId' })
 
   const parsed = guestCreateSchema.safeParse(req.body)
   if (!parsed.success) return res.status(400).json({ message: 'Invalid input', issues: parsed.error.issues })
 
-  const pg = await prisma.pG.findUnique({ where: { id: pgId } })
+  const pg = await prisma.pG.findUnique({ where: { id: Number(pgId) } })
   if (!pg) return res.status(404).json({ message: 'PG not found' })
 
   // Validate bed belongs to this PG and is vacant

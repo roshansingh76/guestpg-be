@@ -32,8 +32,8 @@ export const createPG = async (req: Request, res: Response) => {
       !area ||
       !city ||
       !state ||
-      latitude === undefined ||
-      longitude === undefined ||
+      latitude == null ||
+      longitude == null ||
       !pgType
     ) {
       return res.status(400).json({ message: 'Missing required fields' })
@@ -51,8 +51,8 @@ export const createPG = async (req: Request, res: Response) => {
         area,
         city,
         state,
-        latitude,
-        longitude,
+        latitude: Number(latitude),
+        longitude: Number(longitude),
         pgType,
         numberOfRooms,
         isFoodAvailable: isFoodAvailable || false,
