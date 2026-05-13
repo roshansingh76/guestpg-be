@@ -89,7 +89,7 @@ export const getAllPGs = async (req: Request, res: Response) => {
         pgType: pgType as string,
         userId: auth.sub,
         userRole: auth.role,
-        userPgId: auth.pgId ?? undefined,
+        userPgIds: auth.pgIds,
       },
       { page: Number(page), limit: Number(limit) }
     )

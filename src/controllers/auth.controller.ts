@@ -30,7 +30,13 @@ export async function login(req: Request, res: Response) {
     if (!user) return sendError(res, 'Invalid email or password', 'UNAUTHORIZED', [], 401)
 
     const token = jwt.sign(
-      { sub: user.id, role: user.role, email: user.email, pgId: user.pgId },
+      {
+        sub: user.id,
+        role: user.role,
+        email: user.email,
+        pgId: user.pgId ?? null,
+        pgIds: user.pgIds || [],
+      },
       jwtSecret(),
       { expiresIn: '7d' }
     )

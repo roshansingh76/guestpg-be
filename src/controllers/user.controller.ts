@@ -23,8 +23,8 @@ export const createUser = async (req: Request, res: Response) => {
       return sendBadRequest(res, 'Invalid role. Must be admin, pg_owner, or pg_staff')
     }
 
-    if ((role === 'pg_owner' || role === 'pg_staff') && !pgId) {
-      return sendBadRequest(res, `pgId is required for role: ${role}`)
+    if ((role === 'pg_owner' || role === 'pg_staff') && !pgId && !Array.isArray(req.body.pgIds)) {
+      return sendBadRequest(res, `pgId or pgIds is required for role: ${role}`)
     }
 
     const user = await UserService.createUser({
@@ -34,6 +34,7 @@ export const createUser = async (req: Request, res: Response) => {
       password,
       role,
       pgId,
+      pgIds: Array.isArray(req.body.pgIds) ? req.body.pgIds.map(Number) : undefined,
       status: status || 'active',
     })
 
@@ -94,8 +95,8 @@ export const updateUser = async (req: Request, res: Response) => {
       return sendBadRequest(res, 'Invalid role. Must be admin, pg_owner, or pg_staff')
     }
 
-    if ((role === 'pg_owner' || role === 'pg_staff') && !pgId) {
-      return sendBadRequest(res, `pgId is required for role: ${role}`)
+    if ((role === 'pg_owner' || role === 'pg_staff') && !pgId && !Array.isArray(req.body.pgIds)) {
+      return sendBadRequest(res, `pgId or pgIds is required for role: ${role}`)
     }
 
     const user = await UserService.updateUser(Number(id), {
@@ -104,6 +105,7 @@ export const updateUser = async (req: Request, res: Response) => {
       phone,
       role,
       pgId,
+      pgIds: Array.isArray(req.body.pgIds) ? req.body.pgIds.map(Number) : undefined,
       status,
       password,
     })

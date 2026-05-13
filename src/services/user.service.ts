@@ -10,6 +10,7 @@ export interface CreateUserInput {
   password: string
   role: 'admin' | 'pg_owner' | 'pg_staff'
   pgId?: number
+  pgIds?: number[]
   status?: 'active' | 'inactive'
 }
 
@@ -20,6 +21,7 @@ export interface UpdateUserInput {
   password?: string
   role?: 'admin' | 'pg_owner' | 'pg_staff'
   pgId?: number | null
+  pgIds?: number[] | null
   status?: 'active' | 'inactive'
 }
 
@@ -36,17 +38,40 @@ export class UserService {
         phone: data.phone,
         passwordHash: hashedPassword,
         role: data.role,
-        pgId: data.pgId || null,
+        pgId: data.pgId ?? data.pgIds?.[0] ?? null,
         status: data.status || 'active',
+        userPGs:
+          data.pgIds && data.pgIds.length > 0
+            ? {
+                create: data.pgIds.map((pgId) => ({ pg: { connect: { id: pgId } } })),
+              }
+            : data.pgId
+            ? {
+                create: { pg: { connect: { id: data.pgId } } },
+              }
+            : undefined,
       },
       include: {
         pg: true,
+        userPGs: {
+          select: {
+            pgId: true,
+            pg: {
+              select: {
+                id: true,
+                pgName: true,
+                city: true,
+                state: true,
+              },
+            },
+          },
+        },
       },
     })
 
-    // Return without password
     const { passwordHash: _, ...userWithoutPassword } = user as any
-    return userWithoutPassword
+    const pgIds = user.userPGs?.map((assignment: any) => assignment.pgId) ?? []
+    return { ...userWithoutPassword, pgIds }
   }
 
   // Get all users with filters and pagination
@@ -65,7 +90,7 @@ export class UserService {
     const where: any = {}
     if (filters?.role) where.role = filters.role
     if (filters?.status) where.status = filters.status
-    if (filters?.pgId) where.pgId = filters.pgId
+    if (filters?.pgId) where.userPGs = { some: { pgId: filters.pgId } }
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({
@@ -89,6 +114,19 @@ export class UserService {
               state: true,
             },
           },
+          userPGs: {
+            select: {
+              pgId: true,
+              pg: {
+                select: {
+                  id: true,
+                  pgName: true,
+                  city: true,
+                  state: true,
+                },
+              },
+            },
+          },
           createdAt: true,
           updatedAt: true,
         },
@@ -96,11 +134,16 @@ export class UserService {
       prisma.user.count({ where }),
     ])
 
+    const mappedUsers = users.map((user: any) => {
+      const pgIds = user.userPGs?.map((assignment: any) => assignment.pgId) ?? []
+      return { ...user, pgIds }
+    })
+
     return {
-      data: users,
+      data: mappedUsers,
       pagination: {
         skip,
-        count: users.length,
+        count: mappedUsers.length,
         totalCount: total,
       },
     }
@@ -127,12 +170,28 @@ export class UserService {
             pgType: true,
           },
         },
+        userPGs: {
+          select: {
+            pgId: true,
+            pg: {
+              select: {
+                id: true,
+                pgName: true,
+                city: true,
+                state: true,
+              },
+            },
+          },
+        },
         createdAt: true,
         updatedAt: true,
       },
     })
 
-    return user
+    if (!user) return null
+
+    const pgIds = user.userPGs?.map((assignment: any) => assignment.pgId) ?? []
+    return { ...user, pgIds }
   }
 
   // Update user
@@ -145,6 +204,13 @@ export class UserService {
     if (data.role) updateData.role = data.role
     if (data.status) updateData.status = data.status
     if (data.pgId !== undefined) updateData.pgId = data.pgId
+    if (data.pgIds !== undefined) {
+      updateData.pgId = data.pgIds && data.pgIds.length > 0 ? data.pgIds[0] : null
+      updateData.userPGs = {
+        deleteMany: {},
+        create: data.pgIds?.map((pgId) => ({ pg: { connect: { id: pgId } } })) ?? [],
+      }
+    }
 
     if (data.password) {
       updateData.passwordHash = await bcrypt.hash(data.password, SALT_ROUNDS)
@@ -169,12 +235,26 @@ export class UserService {
             state: true,
           },
         },
+        userPGs: {
+          select: {
+            pgId: true,
+            pg: {
+              select: {
+                id: true,
+                pgName: true,
+                city: true,
+                state: true,
+              },
+            },
+          },
+        },
         createdAt: true,
         updatedAt: true,
       },
     })
 
-    return user
+    const pgIds = user.userPGs?.map((assignment: any) => assignment.pgId) ?? []
+    return { ...user, pgIds }
   }
 
   // Delete user
@@ -198,6 +278,13 @@ export class UserService {
   static async authenticateUser(email: string, password: string) {
     const user = await prisma.user.findUnique({
       where: { email },
+      include: {
+        userPGs: {
+          select: {
+            pgId: true,
+          },
+        },
+      },
     })
 
     if (!user) {
@@ -215,8 +302,9 @@ export class UserService {
       return null
     }
 
-    const { passwordHash: _, ...userWithoutPassword } = user as any
-    return userWithoutPassword
+    const { passwordHash: _, userPGs, ...userWithoutPassword } = user as any
+    const pgIds = userPGs?.map((assignment: any) => assignment.pgId) ?? []
+    return { ...userWithoutPassword, pgIds }
   }
 
   // Get all available PGs for assignment

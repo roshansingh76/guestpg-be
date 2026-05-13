@@ -35,16 +35,16 @@ router.delete('/:id', authRequired, deletePG)
 router.patch('/:id/status', authRequired, changePGStatus)
 
 // ============ PG Room Routes ============
-router.post('/:pgId/rooms', createRoom)
-router.get('/:pgId/rooms', getRoomsByPG)
-router.get('/:pgId/rooms/:roomId', getRoomById)
-router.put('/:pgId/rooms/:roomId', updateRoom)
-router.delete('/:pgId/rooms/:roomId', deleteRoom)
+router.post('/:pgId/rooms', authRequired, createRoom)
+router.get('/:pgId/rooms', authRequired, getRoomsByPG)
+router.get('/:pgId/rooms/:roomId', authRequired, getRoomById)
+router.put('/:pgId/rooms/:roomId', authRequired, updateRoom)
+router.delete('/:pgId/rooms/:roomId', authRequired, deleteRoom)
 
 // ============ PG Photo Routes ============
-router.post('/:pgId/photos', addPGPhoto)
-router.get('/:pgId/photos', getPGPhotos)
-router.delete('/:pgId/photos/:photoId', deletePGPhoto)
+router.post('/:pgId/photos', authRequired, addPGPhoto)
+router.get('/:pgId/photos', authRequired, getPGPhotos)
+router.delete('/:pgId/photos/:photoId', authRequired, deletePGPhoto)
 
 // ============ Expense Routes ============
 router.use('/:pgId/expenses', expenseRoutes)

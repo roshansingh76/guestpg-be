@@ -19,6 +19,10 @@ export async function generateBills(req: Request, res: Response) {
       return sendBadRequest(res, 'month, year, and dueDate are required')
     }
 
+    if (extraItems !== undefined && !Array.isArray(extraItems)) {
+      return sendBadRequest(res, 'extraItems must be an array')
+    }
+
     const result = await BillingService.generateBills({
       pgId,
       month: Number(month),
@@ -28,6 +32,12 @@ export async function generateBills(req: Request, res: Response) {
     })
 
     if (!result.created.length) {
+      if (result.reason === 'no_active_tenants') {
+        return sendBadRequest(res, 'No active tenants found for this PG', { requestedMonth: month, requestedYear: year } as any)
+      }
+      if (result.reason === 'all_existing') {
+        return sendBadRequest(res, 'All active tenants already have bills for this month', { requestedMonth: month, requestedYear: year } as any)
+      }
       return sendBadRequest(res, 'No bills created because the requested month already exists or there are no active tenants', { requestedMonth: month, requestedYear: year } as any)
     }
 
@@ -57,13 +67,68 @@ export async function getBillById(req: Request, res: Response) {
     const pgId = Number(req.params.pgId)
     const billId = Number(req.params.billId)
 
-    const bill = await BillingService.getBillById(pgId, billId)
+    const bill = await BillingService.getBillById(billId, pgId)
     if (!bill) return sendNotFound(res, 'Bill not found')
 
     return sendSuccess(res, bill)
   } catch (error: any) {
     logger.error('Get bill by id failed', { error })
     return sendError(res, error?.message || 'Failed to fetch bill')
+  }
+}
+
+export async function getBillByIdUnified(req: Request, res: Response) {
+  try {
+    const billId = Number(req.params.billId)
+    const bill = await BillingService.getBillById(billId)
+    if (!bill) return sendNotFound(res, 'Bill not found')
+
+    return sendSuccess(res, bill)
+  } catch (error: any) {
+    logger.error('Get bill by id failed', { error })
+    return sendError(res, error?.message || 'Failed to fetch bill')
+  }
+}
+
+export async function addBillItem(req: Request, res: Response) {
+  try {
+    const billId = Number(req.params.billId)
+    const { label, amount } = req.body
+
+    if (!label || amount === undefined) {
+      return sendBadRequest(res, 'label and amount are required')
+    }
+
+    const bill = await BillingService.addBillItem(billId, { label, amount: Number(amount) })
+    if (!bill) return sendNotFound(res, 'Bill not found')
+
+    return sendCreated(res, bill)
+  } catch (error: any) {
+    logger.error('Add bill item failed', { error })
+    return sendError(res, error?.message || 'Failed to add bill item')
+  }
+}
+
+export async function updateBillItem(req: Request, res: Response) {
+  try {
+    const billId = Number(req.params.billId)
+    const itemId = Number(req.params.itemId)
+    const { label, amount } = req.body
+
+    if (label === undefined && amount === undefined) {
+      return sendBadRequest(res, 'label or amount is required')
+    }
+
+    const bill = await BillingService.updateBillItem(billId, itemId, {
+      label,
+      amount: amount !== undefined ? Number(amount) : undefined,
+    })
+    if (!bill) return sendNotFound(res, 'Bill or bill item not found')
+
+    return sendSuccess(res, bill)
+  } catch (error: any) {
+    logger.error('Update bill item failed', { error })
+    return sendError(res, error?.message || 'Failed to update bill item')
   }
 }
 
@@ -123,5 +188,23 @@ export async function getReceipt(req: Request, res: Response) {
   } catch (error: any) {
     logger.error('Get receipt failed', { error })
     return sendError(res, error?.message || 'Failed to fetch receipt')
+  }
+}
+
+export async function getAllBills(req: Request, res: Response) {
+  try {
+    const { pgId, status, skip = 0, limit = 20 } = req.query
+
+    const page = Math.floor(Number(skip) / Number(limit)) + 1
+    const result = await BillingService.getAllBills(
+      pgId ? Number(pgId) : undefined,
+      status as string | undefined,
+      page,
+      Number(limit)
+    )
+    return sendList(res, result.data, { skip: Number(skip), count: result.data.length, totalCount: result.pagination.totalCount })
+  } catch (error: any) {
+    logger.error('Get all bills failed', { error })
+    return sendError(res, error?.message || 'Failed to fetch bills')
   }
 }

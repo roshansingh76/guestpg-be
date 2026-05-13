@@ -59,6 +59,7 @@ export class PGService {
       userId?: number
       userRole?: string
       userPgId?: number
+      userPgIds?: number[]
     },
     pagination?: { page?: number; limit?: number }
   ) {
@@ -73,10 +74,12 @@ export class PGService {
 
     // Filter PGs based on user role
     if (filters?.userRole === 'pg_owner' || filters?.userRole === 'pg_staff') {
-      if (filters?.userPgId) {
+      if (filters?.userPgIds && filters.userPgIds.length > 0) {
+        where.id = { in: filters.userPgIds }
+      } else if (filters?.userPgId) {
         where.id = filters.userPgId
       } else {
-        // If user doesn't have a pgId assigned, return no PGs
+        // If user doesn't have any assigned PGs, return no PGs
         where.id = -1
       }
     }

@@ -44,6 +44,7 @@ model User {
   status       UserStatus @default(active)
   pgId         Int?
   pg           PG?        @relation(fields: [pgId], references: [id], onDelete: SetNull)
+  userPGs      UserPG[]
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 }
@@ -52,6 +53,8 @@ model Tenant {
   id             Int       @id @default(autoincrement())
   pgId           Int
   pg             PG        @relation(fields: [pgId], references: [id], onDelete: Cascade)
+  roomId         Int?
+  room           PGRoom?   @relation(fields: [roomId], references: [id], onDelete: SetNull)
   name           String
   phone          String
   aadhar         String
@@ -65,7 +68,7 @@ model Tenant {
   status         String    @default("active")
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
-  bills          RentBill[]
+  bills          Bill[]
   payments       Payment[]
 }
 
@@ -113,9 +116,10 @@ model PG {
   rooms            PGRoom[]
   photos           PGPhoto[]
   users            User[]
+  userPGs          UserPG[]
   expenses         Expense[]
   tenants          Tenant[]
-  bills            RentBill[]
+  bills            Bill[]
   payments         Payment[]
 }
 
@@ -129,6 +133,7 @@ model PGRoom {
   availableBeds   Int
   pricePerBed     Int
   acType          RoomType
+  tenants         Tenant[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -142,6 +147,17 @@ model PGPhotoCategory {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   photos      PGPhoto[]
+}
+
+model UserPG {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  pgId       Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pg         PG       @relation(fields: [pgId], references: [id], onDelete: Cascade)
+  assignedAt DateTime @default(now())
+
+  @@unique([userId, pgId])
 }
 
 enum ExpenseCategory {
@@ -196,7 +212,18 @@ enum PaymentMode {
   other
 }
 
-model RentBill {
+enum BillCategory {
+  Rent
+  Electricity
+  Water
+  Maintenance
+  Salary
+  Food
+  Internet
+  Other
+}
+
+model Bill {
   id           Int        @id @default(autoincrement())
   pgId         Int
   pg           PG         @relation(fields: [pgId], references: [id], onDelete: Cascade)
@@ -204,7 +231,6 @@ model RentBill {
   tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   billMonth    Int        // 1-12
   billYear     Int
-  rentAmount   Float
   totalAmount  Float
   paidAmount   Float      @default(0)
   dueAmount    Float
@@ -220,18 +246,18 @@ model RentBill {
 }
 
 model BillItem {
-  id          Int      @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   billId      Int
-  bill        RentBill @relation(fields: [billId], references: [id], onDelete: Cascade)
-  label       String   // e.g. "Electricity", "Food", "Laundry"
+  bill        Bill        @relation(fields: [billId], references: [id], onDelete: Cascade)
+  label       BillCategory @map("label")
   amount      Float
-  createdAt   DateTime @default(now())
+  createdAt   DateTime    @default(now())
 }
 
 model Payment {
   id            Int         @id @default(autoincrement())
   billId        Int
-  bill          RentBill    @relation(fields: [billId], references: [id], onDelete: Cascade)
+  bill          Bill        @relation(fields: [billId], references: [id], onDelete: Cascade)
   pgId          Int
   pg            PG          @relation(fields: [pgId], references: [id], onDelete: Cascade)
   tenantId      Int

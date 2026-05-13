@@ -5,6 +5,7 @@ export interface CreateTenantInput {
   phone: string
   aadhar: string
   pgId: number
+  roomId?: number
   address?: string
   emergency?: string
   emergencyPhone?: string
@@ -19,6 +20,7 @@ export interface UpdateTenantInput {
   name?: string
   phone?: string
   aadhar?: string
+  roomId?: number
   address?: string
   emergency?: string
   emergencyPhone?: string
@@ -68,6 +70,7 @@ export class TenantService {
         phone: data.phone,
         aadhar: data.aadhar,
         pgId: data.pgId,
+        roomId: data.roomId,
         address: data.address,
         emergency: data.emergency,
         emergencyPhone: data.emergencyPhone,
@@ -85,6 +88,7 @@ export class TenantService {
     if (data.name) updateData.name = data.name
     if (data.phone) updateData.phone = data.phone
     if (data.aadhar) updateData.aadhar = data.aadhar
+    if (data.roomId !== undefined) updateData.roomId = data.roomId
     if (data.address) updateData.address = data.address
     if (data.emergency) updateData.emergency = data.emergency
     if (data.emergencyPhone) updateData.emergencyPhone = data.emergencyPhone

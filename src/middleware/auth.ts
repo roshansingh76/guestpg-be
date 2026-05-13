@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 
-export type AuthPayload = { sub: number; role: string; email: string; pgId: number | null }
+export type AuthPayload = { sub: number; role: string; email: string; pgId: number | null; pgIds?: number[] }
 
 declare global {
   namespace Express {
@@ -26,6 +26,12 @@ export function authRequired(req: Request, res: Response, next: NextFunction) {
   } catch {
     return res.status(401).json({ message: 'Invalid token' })
   }
+}
+
+export function hasPGAccess(auth: AuthPayload, pgId: number) {
+  if (auth.role === 'admin' || auth.role === 'super_admin') return true
+  if (!auth.pgIds || auth.pgIds.length === 0) return true
+  return auth.pgIds.includes(pgId) || auth.pgId === pgId
 }
 
 export function requireRole(...roles: string[]) {

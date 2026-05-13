@@ -27,6 +27,7 @@ export function createApp() {
 
   app.get('/', (_req, res) => res.send('node-aws API is running'))
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
+  app.use('/assets', express.static(path.resolve(__dirname, '../assets')))
   app.use('/api', routes)
 
   app.use(errorHandler)

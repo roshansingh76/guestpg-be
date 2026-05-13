@@ -1,5 +1,12 @@
 import type { Request, Response } from 'express'
+import fs from 'fs/promises'
+import path from 'path'
 import { z } from 'zod'
+
+type TenantFiles = {
+  photo?: Express.Multer.File[]
+  idProof?: Express.Multer.File[]
+}
 import { TenantService } from '../services/tenant.service'
 import { logger } from '../utils/logger'
 import {
@@ -16,6 +23,7 @@ const tenantCreateSchema = z.object({
   name: z.string().min(1),
   phone: z.string().min(5),
   aadhar: z.string().min(4),
+  roomId: z.string().optional(),
   address: z.string().optional(),
   emergency: z.string().optional(),
   emergencyPhone: z.string().optional(),
@@ -25,6 +33,18 @@ const tenantCreateSchema = z.object({
   moveOutDate: z.string().optional(),
   status: z.string().optional(),
 })
+
+const assetsRoot = path.resolve(__dirname, '../..', 'assets')
+
+async function saveTenantFile(file: Express.Multer.File, pgId: number, tenantId: number, folder: 'photo' | 'id-proof') {
+  const dir = path.resolve(assetsRoot, String(pgId), String(tenantId), folder)
+  await fs.mkdir(dir, { recursive: true })
+  const extension = path.extname(file.originalname) || ''
+  const filename = `${Date.now()}${extension}`
+  const filePath = path.join(dir, filename)
+  await fs.writeFile(filePath, file.buffer)
+  return `/assets/${pgId}/${tenantId}/${folder}/${filename}`
+}
 
 export async function listTenants(req: Request, res: Response) {
   try {
@@ -80,6 +100,7 @@ export async function createTenant(req: Request, res: Response) {
       phone: parsed.data.phone,
       aadhar: parsed.data.aadhar,
       pgId,
+      roomId: parsed.data.roomId ? Number(parsed.data.roomId) : undefined,
       address: parsed.data.address,
       emergency: parsed.data.emergency,
       emergencyPhone: parsed.data.emergencyPhone,
@@ -89,6 +110,20 @@ export async function createTenant(req: Request, res: Response) {
       moveOutDate: parsed.data.moveOutDate ? new Date(parsed.data.moveOutDate) : undefined,
       status: parsed.data.status || 'active',
     })
+
+    const files = (req as Request & { files?: TenantFiles }).files
+    const updateData: any = {}
+    if (files?.photo?.[0]) {
+      updateData.photoUrl = await saveTenantFile(files.photo[0], pgId, tenant.id, 'photo')
+    }
+    if (files?.idProof?.[0]) {
+      updateData.idProofUrl = await saveTenantFile(files.idProof[0], pgId, tenant.id, 'id-proof')
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      const updatedTenant = await TenantService.updateTenant(pgId, tenant.id, updateData)
+      return sendCreated(res, updatedTenant || tenant)
+    }
 
     return sendCreated(res, tenant)
   } catch (error: any) {
@@ -120,6 +155,7 @@ export async function updateTenant(req: Request, res: Response) {
       name: parsed.data.name,
       phone: parsed.data.phone,
       aadhar: parsed.data.aadhar,
+      roomId: parsed.data.roomId ? Number(parsed.data.roomId) : undefined,
       address: parsed.data.address,
       emergency: parsed.data.emergency,
       emergencyPhone: parsed.data.emergencyPhone,
@@ -129,6 +165,21 @@ export async function updateTenant(req: Request, res: Response) {
       moveOutDate: parsed.data.moveOutDate ? new Date(parsed.data.moveOutDate) : undefined,
       status: parsed.data.status,
     })
+
+    const files = (req as Request & { files?: TenantFiles }).files
+    const updateData: any = {}
+    if (files?.photo?.[0]) {
+      updateData.photoUrl = await saveTenantFile(files.photo[0], pgId, id, 'photo')
+    }
+    if (files?.idProof?.[0]) {
+      updateData.idProofUrl = await saveTenantFile(files.idProof[0], pgId, id, 'id-proof')
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      const tenantWithFiles = await TenantService.updateTenant(pgId, id, updateData)
+      if (!tenantWithFiles) return sendNotFound(res, 'Tenant not found')
+      return sendSuccess(res, tenantWithFiles)
+    }
 
     if (!tenant) return sendNotFound(res, 'Tenant not found')
     return sendSuccess(res, tenant)
