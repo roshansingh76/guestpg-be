@@ -48,12 +48,10 @@ model User {
   updatedAt    DateTime   @updatedAt
 }
 
-model Guest {
+model Tenant {
   id             Int       @id @default(autoincrement())
   pgId           Int
   pg             PG        @relation(fields: [pgId], references: [id], onDelete: Cascade)
-  bedId          Int?
-  bed            PGBed?    @relation(fields: [bedId], references: [id], onDelete: SetNull)
   name           String
   phone          String
   aadhar         String
@@ -115,9 +113,8 @@ model PG {
   rooms            PGRoom[]
   photos           PGPhoto[]
   users            User[]
-  beds             PGBed[]
   expenses         Expense[]
-  guests           Guest[]
+  tenants          Tenant[]
   bills            RentBill[]
   payments         Payment[]
 }
@@ -134,30 +131,17 @@ model PGRoom {
   acType          RoomType
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  beds            PGBed[]
 
   @@unique([pgId, roomNumber])
 }
 
-enum BedStatus {
-  vacant
-  occupied
-  reserved
-}
-
-model PGBed {
-  id         Int       @id @default(autoincrement())
-  roomId     Int
-  room       PGRoom    @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  pgId       Int
-  pg         PG        @relation(fields: [pgId], references: [id], onDelete: Cascade)
-  bedNumber  String
-  status     BedStatus @default(vacant)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  guests     Guest[]
-
-  @@unique([roomId, bedNumber])
+model PGPhotoCategory {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  photos      PGPhoto[]
 }
 
 enum ExpenseCategory {
@@ -184,12 +168,14 @@ model Expense {
 }
 
 model PGPhoto {
-  id        Int      @id @default(autoincrement())
-  pgId      Int
-  pg        PG       @relation(fields: [pgId], references: [id], onDelete: Cascade)
-  photoUrl  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  pgId        Int
+  pg          PG       @relation(fields: [pgId], references: [id], onDelete: Cascade)
+  categoryId  Int
+  category    PGPhotoCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  photoUrl    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 // ============ Billing Models ============
@@ -214,8 +200,8 @@ model RentBill {
   id           Int        @id @default(autoincrement())
   pgId         Int
   pg           PG         @relation(fields: [pgId], references: [id], onDelete: Cascade)
-  guestId      Int
-  guest        Guest      @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  tenantId     Int
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   billMonth    Int        // 1-12
   billYear     Int
   rentAmount   Float
@@ -230,7 +216,7 @@ model RentBill {
   items        BillItem[]
   payments     Payment[]
 
-  @@unique([guestId, billMonth, billYear])
+  @@unique([tenantId, billMonth, billYear])
 }
 
 model BillItem {
@@ -248,8 +234,8 @@ model Payment {
   bill          RentBill    @relation(fields: [billId], references: [id], onDelete: Cascade)
   pgId          Int
   pg            PG          @relation(fields: [pgId], references: [id], onDelete: Cascade)
-  guestId       Int
-  guest         Guest       @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  tenantId      Int
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   amount        Float
   mode          PaymentMode
   referenceNo   String?

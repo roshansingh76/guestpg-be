@@ -3,6 +3,14 @@ import jwt from 'jsonwebtoken'
 
 export type AuthPayload = { sub: number; role: string; email: string; pgId: number | null }
 
+declare global {
+  namespace Express {
+    interface Request {
+      auth?: AuthPayload
+    }
+  }
+}
+
 function jwtSecret() {
   return process.env.JWT_SECRET || 'dev-secret-change-me'
 }

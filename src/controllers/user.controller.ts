@@ -1,36 +1,30 @@
 import { Request, Response } from 'express'
 import { UserService } from '../services/user.service'
+import { logger } from '../utils/logger'
+import {
+  sendBadRequest,
+  sendCreated,
+  sendError,
+  sendNotFound,
+  sendSuccess,
+  sendList,
+  sendConflict,
+} from '../utils/response'
 
-// Create a new user
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const {
-      name,
-      email,
-      phone,
-      password,
-      role,
-      pgId,
-      status,
-    } = req.body
+    const { name, email, phone, password, role, pgId, status } = req.body
 
-    // Validate required fields
     if (!name || !email || !phone || !password || !role) {
-      return res.status(400).json({ message: 'Missing required fields' })
+      return sendBadRequest(res, 'Missing required fields')
     }
 
-    // Validate role
     if (!['admin', 'pg_owner', 'pg_staff'].includes(role)) {
-      return res.status(400).json({
-        message: 'Invalid role. Must be admin, pg_owner, or pg_staff',
-      })
+      return sendBadRequest(res, 'Invalid role. Must be admin, pg_owner, or pg_staff')
     }
 
-    // Validate that pgId is provided for pg_owner and pg_staff
     if ((role === 'pg_owner' || role === 'pg_staff') && !pgId) {
-      return res.status(400).json({
-        message: `pgId is required for role: ${role}`,
-      })
+      return sendBadRequest(res, `pgId is required for role: ${role}`)
     }
 
     const user = await UserService.createUser({
@@ -43,93 +37,65 @@ export const createUser = async (req: Request, res: Response) => {
       status: status || 'active',
     })
 
-    res.status(201).json({
-      message: 'User created successfully',
-      data: user,
-    })
+    return sendCreated(res, user)
   } catch (error: any) {
+    logger.error('Create user failed', { error })
     if (error.code === 'P2002') {
-      return res.status(400).json({
-        message: 'Email already exists',
-      })
+      return sendConflict(res, 'Email already exists')
     }
-    res.status(500).json({
-      message: 'Error creating user',
-      error: error.message,
-    })
+    return sendError(res, error?.message || 'Error creating user')
   }
 }
 
-// Get all users
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const { role, status, pgId, page = 1, limit = 10 } = req.query
+    const { role, status, pgId, skip = 0, limit = 10 } = req.query
 
     const filters: any = {}
     if (role) filters.role = role
     if (status) filters.status = status
     if (pgId) filters.pgId = Number(pgId)
 
-    const result = await UserService.getAllUsers(
-      filters,
-      { page: Number(page), limit: Number(limit) }
-    )
-
-    res.json(result)
-  } catch (error: any) {
-    res.status(500).json({
-      message: 'Error fetching users',
-      error: error.message,
+    const page = Math.floor(Number(skip) / Number(limit)) + 1
+    const result = await UserService.getAllUsers(filters, {
+      page,
+      limit: Number(limit),
     })
+
+    return sendList(res, result.data, { skip: Number(skip), count: result.data.length, totalCount: result.pagination.totalCount })
+  } catch (error: any) {
+    logger.error('Get all users failed', { error })
+    return sendError(res, error?.message || 'Error fetching users')
   }
 }
 
-// Get user by ID
 export const getUserById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
-
     const user = await UserService.getUserById(Number(id))
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' })
+      return sendNotFound(res, 'User not found')
     }
 
-    res.json(user)
+    return sendSuccess(res, user)
   } catch (error: any) {
-    res.status(500).json({
-      message: 'Error fetching user',
-      error: error.message,
-    })
+    logger.error('Get user by id failed', { error })
+    return sendError(res, error?.message || 'Error fetching user')
   }
 }
 
-// Update user
 export const updateUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
-    const {
-      name,
-      email,
-      phone,
-      role,
-      pgId,
-      status,
-      password,
-    } = req.body
+    const { name, email, phone, role, pgId, status, password } = req.body
 
-    // Validate role if provided
     if (role && !['admin', 'pg_owner', 'pg_staff'].includes(role)) {
-      return res.status(400).json({
-        message: 'Invalid role. Must be admin, pg_owner, or pg_staff',
-      })
+      return sendBadRequest(res, 'Invalid role. Must be admin, pg_owner, or pg_staff')
     }
 
-    // Validate that pgId is provided for pg_owner and pg_staff
     if ((role === 'pg_owner' || role === 'pg_staff') && !pgId) {
-      return res.status(400).json({
-        message: `pgId is required for role: ${role}`,
-      })
+      return sendBadRequest(res, `pgId is required for role: ${role}`)
     }
 
     const user = await UserService.updateUser(Number(id), {
@@ -143,110 +109,79 @@ export const updateUser = async (req: Request, res: Response) => {
     })
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' })
+      return sendNotFound(res, 'User not found')
     }
 
-    res.json({
-      message: 'User updated successfully',
-      data: user,
-    })
+    return sendSuccess(res, user)
   } catch (error: any) {
+    logger.error('Update user failed', { error })
     if (error.code === 'P2002') {
-      return res.status(400).json({
-        message: 'Email already exists',
-      })
+      return sendConflict(res, 'Email already exists')
     }
-    res.status(500).json({
-      message: 'Error updating user',
-      error: error.message,
-    })
+    return sendError(res, error?.message || 'Error updating user')
   }
 }
 
-// Delete user
 export const deleteUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
-
     await UserService.deleteUser(Number(id))
-
-    res.json({
-      message: 'User deleted successfully',
-    })
+    return sendSuccess(res, { success: true })
   } catch (error: any) {
+    logger.error('Delete user failed', { error })
     if (error.code === 'P2025') {
-      return res.status(404).json({ message: 'User not found' })
+      return sendNotFound(res, 'User not found')
     }
-    res.status(500).json({
-      message: 'Error deleting user',
-      error: error.message,
-    })
+    return sendError(res, error?.message || 'Error deleting user')
   }
 }
 
-// Change user status
 export const changeUserStatus = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
     const { status } = req.body
 
     if (!['active', 'inactive'].includes(status)) {
-      return res.status(400).json({
-        message: 'Invalid status. Must be active or inactive',
-      })
+      return sendBadRequest(res, 'Invalid status. Must be active or inactive')
     }
 
     const user = await UserService.updateUser(Number(id), { status })
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' })
+      return sendNotFound(res, 'User not found')
     }
 
-    res.json({
-      message: 'User status updated successfully',
-      data: user,
-    })
+    return sendSuccess(res, user)
   } catch (error: any) {
-    res.status(500).json({
-      message: 'Error updating user status',
-      error: error.message,
-    })
+    logger.error('Change user status failed', { error })
+    return sendError(res, error?.message || 'Error updating user status')
   }
 }
 
-// Get users by PG
 export const getUsersByPG = async (req: Request, res: Response) => {
   try {
     const { pgId } = req.params
-    const { page = 1, limit = 10 } = req.query
+    const { skip = 0, limit = 10 } = req.query
 
+    const page = Math.floor(Number(skip) / Number(limit)) + 1
     const result = await UserService.getAllUsers(
       { pgId: Number(pgId) },
-      { page: Number(page), limit: Number(limit) }
+      { page, limit: Number(limit) }
     )
 
-    res.json(result)
+    return sendList(res, result.data, { skip: Number(skip), count: result.data.length, totalCount: result.pagination.totalCount })
   } catch (error: any) {
-    res.status(500).json({
-      message: 'Error fetching users',
-      error: error.message,
-    })
+    logger.error('Get users by pg failed', { error })
+    return sendError(res, error?.message || 'Error fetching users')
   }
 }
 
-// Get available PGs for user assignment
 export const getAvailablePGs = async (req: Request, res: Response) => {
   try {
     const pgs = await UserService.getAvailablePGs()
-
-    res.json({
-      data: pgs,
-      total: pgs.length,
-    })
+    return sendSuccess(res, pgs)
   } catch (error: any) {
-    res.status(500).json({
-      message: 'Error fetching PGs',
-      error: error.message,
-    })
+    logger.error('Get available pgs failed', { error })
+    return sendError(res, error?.message || 'Error fetching PGs')
   }
 }

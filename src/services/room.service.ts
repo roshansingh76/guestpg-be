@@ -50,10 +50,9 @@ export class RoomService {
     return {
       data: rooms,
       pagination: {
-        total,
-        page,
-        limit,
-        pages: Math.ceil(total / limit),
+        skip,
+        count: rooms.length,
+        totalCount: total,
       },
     }
   }

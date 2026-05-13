@@ -2,6 +2,7 @@ import { prisma } from '../db/prisma'
 
 export interface CreatePhotoInput {
   pgId: number
+  categoryId: number
   photoUrl: string
 }
 
@@ -9,7 +10,11 @@ export class PhotoService {
   // Add photo to PG
   static async addPhoto(data: CreatePhotoInput) {
     return prisma.pGPhoto.create({
-      data,
+      data: {
+        pgId: data.pgId,
+        categoryId: data.categoryId,
+        photoUrl: data.photoUrl,
+      },
     })
   }
 
@@ -17,6 +22,7 @@ export class PhotoService {
   static async getPhotosByPG(pgId: number) {
     return prisma.pGPhoto.findMany({
       where: { pgId },
+      include: { category: true },
       orderBy: { createdAt: 'desc' },
     })
   }
@@ -28,6 +34,7 @@ export class PhotoService {
         id,
         pgId,
       },
+      include: { category: true },
     })
   }
 

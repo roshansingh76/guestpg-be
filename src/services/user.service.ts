@@ -99,10 +99,9 @@ export class UserService {
     return {
       data: users,
       pagination: {
-        total,
-        page,
-        limit,
-        pages: Math.ceil(total / limit),
+        skip,
+        count: users.length,
+        totalCount: total,
       },
     }
   }

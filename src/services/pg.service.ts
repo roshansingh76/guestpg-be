@@ -56,6 +56,9 @@ export class PGService {
       status?: PGStatus
       city?: string
       pgType?: string
+      userId?: number
+      userRole?: string
+      userPgId?: number
     },
     pagination?: { page?: number; limit?: number }
   ) {
@@ -67,6 +70,17 @@ export class PGService {
     if (filters?.status) where.status = filters.status
     if (filters?.city) where.city = filters.city
     if (filters?.pgType) where.pgType = filters.pgType
+
+    // Filter PGs based on user role
+    if (filters?.userRole === 'pg_owner' || filters?.userRole === 'pg_staff') {
+      if (filters?.userPgId) {
+        where.id = filters.userPgId
+      } else {
+        // If user doesn't have a pgId assigned, return no PGs
+        where.id = -1
+      }
+    }
+    // super_admin and admin can see all PGs (no additional filtering needed)
 
     const [pgs, total] = await Promise.all([
       prisma.pG.findMany({
@@ -85,10 +99,9 @@ export class PGService {
     return {
       data: pgs,
       pagination: {
-        total,
-        page,
-        limit,
-        pages: Math.ceil(total / limit),
+        skip,
+        count: pgs.length,
+        totalCount: total,
       },
     }
   }

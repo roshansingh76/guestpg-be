@@ -102,6 +102,7 @@
   },
   "exclude": [
     "node_modules",
-    "prisma.config.ts"
+    "prisma.config.ts",
+    "tmp_inspect_db.ts"
   ]
 }

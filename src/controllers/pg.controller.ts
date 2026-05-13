@@ -1,7 +1,17 @@
 import { Request, Response } from 'express'
-import { prisma } from '../db/prisma'
+import { PGService } from '../services/pg.service'
+import { logger } from '../utils/logger'
+import type { AuthPayload } from '../middleware/auth'
+import {
+  sendBadRequest,
+  sendCreated,
+  sendError,
+  sendNotFound,
+  sendSuccess,
+  sendList,
+  sendConflict,
+} from '../utils/response'
 
-// Create a new PG
 export const createPG = async (req: Request, res: Response) => {
   try {
     const {
@@ -22,7 +32,6 @@ export const createPG = async (req: Request, res: Response) => {
       isFoodAvailable,
     } = req.body
 
-    // Validate required fields
     if (
       !pgName ||
       !ownerName ||
@@ -36,209 +45,127 @@ export const createPG = async (req: Request, res: Response) => {
       longitude == null ||
       !pgType
     ) {
-      return res.status(400).json({ message: 'Missing required fields' })
+      return sendBadRequest(res, 'Missing required fields')
     }
 
-    const pg = await prisma.pG.create({
-      data: {
-        pgName,
-        ownerName,
-        ownerPhone,
-        ownerEmail,
-        addressLine1,
-        addressLine2,
-        nearbyMark,
-        area,
-        city,
-        state,
-        latitude: Number(latitude),
-        longitude: Number(longitude),
-        pgType,
-        numberOfRooms,
-        isFoodAvailable: isFoodAvailable || false,
-      },
-      include: {
-        rooms: true,
-        photos: true,
-      },
+    const pg = await PGService.createPG({
+      pgName,
+      ownerName,
+      ownerPhone,
+      ownerEmail,
+      addressLine1,
+      addressLine2,
+      nearbyMark,
+      area,
+      city,
+      state,
+      latitude: Number(latitude),
+      longitude: Number(longitude),
+      pgType,
+      numberOfRooms,
+      isFoodAvailable: isFoodAvailable || false,
     })
 
-    res.status(201).json({
-      message: 'PG created successfully',
-      data: pg,
-    })
+    return sendCreated(res, pg)
   } catch (error: any) {
+    logger.error('Create PG failed', { error })
     if (error.code === 'P2002') {
-      return res.status(400).json({
-        message: 'Owner email already exists',
-      })
+      return sendConflict(res, 'Owner email already exists')
     }
-    res.status(500).json({
-      message: 'Error creating PG',
-      error: error.message,
-    })
+    return sendError(res, error?.message || 'Error creating PG')
   }
 }
 
-// Get all PGs
 export const getAllPGs = async (req: Request, res: Response) => {
   try {
-    const { status, city, pgType, page = 1, limit = 10 } = req.query
+    const auth = req.auth as AuthPayload
+    const { status, city, pgType, skip = 0, limit = 10 } = req.query
 
-    const where: any = {}
-    if (status) where.status = status
-    if (city) where.city = city
-    if (pgType) where.pgType = pgType
-
-    const skip = (Number(page) - 1) * Number(limit)
-
-    const [pgs, total] = await Promise.all([
-      prisma.pG.findMany({
-        where,
-        include: {
-          rooms: true,
-          photos: true,
-        },
-        skip,
-        take: Number(limit),
-        orderBy: { createdAt: 'desc' },
-      }),
-      prisma.pG.count({ where }),
-    ])
-
-    res.json({
-      data: pgs,
-      pagination: {
-        total,
-        page: Number(page),
-        limit: Number(limit),
-        pages: Math.ceil(total / Number(limit)),
+    const page = Math.floor(Number(skip) / Number(limit)) + 1
+    const result = await PGService.getAllPGs(
+      {
+        status: status as any,
+        city: city as string,
+        pgType: pgType as string,
+        userId: auth.sub,
+        userRole: auth.role,
+        userPgId: auth.pgId ?? undefined,
       },
-    })
+      { page: Number(page), limit: Number(limit) }
+    )
+
+    return sendList(res, result.data, { skip: Number(skip), count: result.data.length, totalCount: result.pagination.totalCount })
   } catch (error: any) {
-    res.status(500).json({
-      message: 'Error fetching PGs',
-      error: error.message,
-    })
+    logger.error('Get all PGs failed', { error })
+    return sendError(res, error?.message || 'Error fetching PGs')
   }
 }
 
-// Get PG by ID
 export const getPGById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
-
-    const pg = await prisma.pG.findUnique({
-      where: { id: Number(id) },
-      include: {
-        rooms: true,
-        photos: true,
-      },
-    })
+    const pg = await PGService.getPGById(Number(id))
 
     if (!pg) {
-      return res.status(404).json({ message: 'PG not found' })
+      return sendNotFound(res, 'PG not found')
     }
 
-    res.json(pg)
+    return sendSuccess(res, pg)
   } catch (error: any) {
-    res.status(500).json({
-      message: 'Error fetching PG',
-      error: error.message,
-    })
+    logger.error('Get PG by id failed', { error })
+    return sendError(res, error?.message || 'Error fetching PG')
   }
 }
 
-// Update PG
 export const updatePG = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
     const updateData = req.body
 
-    const pg = await prisma.pG.update({
-      where: { id: Number(id) },
-      data: updateData,
-      include: {
-        rooms: true,
-        photos: true,
-      },
-    })
-
-    res.json({
-      message: 'PG updated successfully',
-      data: pg,
-    })
+    const pg = await PGService.updatePG(Number(id), updateData)
+    return sendSuccess(res, pg)
   } catch (error: any) {
+    logger.error('Update PG failed', { error })
     if (error.code === 'P2025') {
-      return res.status(404).json({ message: 'PG not found' })
+      return sendNotFound(res, 'PG not found')
     }
     if (error.code === 'P2002') {
-      return res.status(400).json({
-        message: 'Owner email already exists',
-      })
+      return sendConflict(res, 'Owner email already exists')
     }
-    res.status(500).json({
-      message: 'Error updating PG',
-      error: error.message,
-    })
+    return sendError(res, error?.message || 'Error updating PG')
   }
 }
 
-// Delete PG
 export const deletePG = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
-
-    await prisma.pG.delete({
-      where: { id: Number(id) },
-    })
-
-    res.json({
-      message: 'PG deleted successfully',
-    })
+    await PGService.deletePG(Number(id))
+    return sendSuccess(res, { success: true })
   } catch (error: any) {
+    logger.error('Delete PG failed', { error })
     if (error.code === 'P2025') {
-      return res.status(404).json({ message: 'PG not found' })
+      return sendNotFound(res, 'PG not found')
     }
-    res.status(500).json({
-      message: 'Error deleting PG',
-      error: error.message,
-    })
+    return sendError(res, error?.message || 'Error deleting PG')
   }
 }
 
-// Change PG status
 export const changePGStatus = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
     const { status } = req.body
 
     if (!['active', 'inactive'].includes(status)) {
-      return res.status(400).json({
-        message: 'Invalid status. Must be active or inactive',
-      })
+      return sendBadRequest(res, 'Invalid status. Must be active or inactive')
     }
 
-    const pg = await prisma.pG.update({
-      where: { id: Number(id) },
-      data: { status },
-      include: {
-        rooms: true,
-        photos: true,
-      },
-    })
-
-    res.json({
-      message: 'PG status updated successfully',
-      data: pg,
-    })
+    const pg = await PGService.updatePG(Number(id), { status: status as any })
+    return sendSuccess(res, pg)
   } catch (error: any) {
+    logger.error('Change PG status failed', { error })
     if (error.code === 'P2025') {
-      return res.status(404).json({ message: 'PG not found' })
+      return sendNotFound(res, 'PG not found')
     }
-    res.status(500).json({
-      message: 'Error updating PG status',
-      error: error.message,
-    })
+    return sendError(res, error?.message || 'Error updating PG status')
   }
 }
