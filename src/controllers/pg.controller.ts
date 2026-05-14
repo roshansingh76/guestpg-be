@@ -22,8 +22,8 @@ export const createPG = async (req: Request, res: Response) => {
       addressLine1,
       addressLine2,
       nearbyMark,
-      area,
-      city,
+      areaId,
+      cityId,
       state,
       latitude,
       longitude,
@@ -38,8 +38,8 @@ export const createPG = async (req: Request, res: Response) => {
       !ownerPhone ||
       !ownerEmail ||
       !addressLine1 ||
-      !area ||
-      !city ||
+      !areaId ||
+      !cityId ||
       !state ||
       latitude == null ||
       longitude == null ||
@@ -56,8 +56,8 @@ export const createPG = async (req: Request, res: Response) => {
       addressLine1,
       addressLine2,
       nearbyMark,
-      area,
-      city,
+      areaId: Number(areaId),
+      cityId: Number(cityId),
       state,
       latitude: Number(latitude),
       longitude: Number(longitude),
@@ -79,13 +79,13 @@ export const createPG = async (req: Request, res: Response) => {
 export const getAllPGs = async (req: Request, res: Response) => {
   try {
     const auth = req.auth as AuthPayload
-    const { status, city, pgType, skip = 0, limit = 10 } = req.query
+    const { status, cityId, pgType, skip = 0, limit = 10 } = req.query
 
     const page = Math.floor(Number(skip) / Number(limit)) + 1
     const result = await PGService.getAllPGs(
       {
         status: status as any,
-        city: city as string,
+        cityId: cityId ? Number(cityId) : undefined,
         pgType: pgType as string,
         userId: auth.sub,
         userRole: auth.role,

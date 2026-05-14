@@ -1,0 +1,18 @@
+-- CreateTable
+CREATE TABLE "UserPG" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "pgId" INTEGER NOT NULL,
+    "assignedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "UserPG_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UserPG_userId_pgId_key" ON "UserPG"("userId", "pgId");
+
+-- AddForeignKey
+ALTER TABLE "UserPG" ADD CONSTRAINT "UserPG_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserPG" ADD CONSTRAINT "UserPG_pgId_fkey" FOREIGN KEY ("pgId") REFERENCES "PG"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -9,8 +9,8 @@ export interface CreatePGInput {
   addressLine1: string
   addressLine2?: string
   nearbyMark?: string
-  area: string
-  city: string
+  areaId: number
+  cityId: number
   state: string
   latitude: number
   longitude: number
@@ -27,8 +27,8 @@ export interface UpdatePGInput {
   addressLine1?: string
   addressLine2?: string
   nearbyMark?: string
-  area?: string
-  city?: string
+  areaId?: number
+  cityId?: number
   state?: string
   latitude?: number
   longitude?: number
@@ -46,6 +46,8 @@ export class PGService {
       include: {
         rooms: true,
         photos: true,
+        city: true,
+        area: true,
       },
     })
   }
@@ -54,7 +56,7 @@ export class PGService {
   static async getAllPGs(
     filters?: {
       status?: PGStatus
-      city?: string
+      cityId?: number
       pgType?: string
       userId?: number
       userRole?: string
@@ -69,7 +71,7 @@ export class PGService {
 
     const where: any = {}
     if (filters?.status) where.status = filters.status
-    if (filters?.city) where.city = filters.city
+    if (filters?.cityId) where.cityId = filters.cityId
     if (filters?.pgType) where.pgType = filters.pgType
 
     // Filter PGs based on user role
@@ -91,6 +93,8 @@ export class PGService {
         include: {
           rooms: true,
           photos: true,
+          city: true,
+          area: true,
         },
         skip,
         take: limit,
@@ -116,6 +120,8 @@ export class PGService {
       include: {
         rooms: true,
         photos: true,
+        city: true,
+        area: true,
       },
     })
   }
@@ -128,6 +134,8 @@ export class PGService {
       include: {
         rooms: true,
         photos: true,
+        city: true,
+        area: true,
       },
     })
   }

@@ -2,6 +2,8 @@ import { Router } from 'express'
 import authRoutes from './auth.routes'
 import pgRoutes from './pg.routes'
 import userRoutes from './user.routes'
+import cityRoutes from './city.routes'
+import areaRoutes from './area.routes'
 import {
   getAllBills,
   getBillByIdUnified,
@@ -17,6 +19,8 @@ router.get('/health', (_req, res) => res.json({ ok: true }))
 router.use('/auth', authRoutes)
 router.use('/pgs', pgRoutes)
 router.use('/users', userRoutes)
+router.use('/cities', cityRoutes)
+router.use('/areas', areaRoutes)
 
 // ============ Unified Bills Route ============
 router.get('/bills', authRequired, getAllBills)
