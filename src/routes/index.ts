@@ -4,6 +4,7 @@ import pgRoutes from './pg.routes'
 import userRoutes from './user.routes'
 import cityRoutes from './city.routes'
 import areaRoutes from './area.routes'
+import roleRoutes from './role.routes'
 import {
   getAllBills,
   getBillByIdUnified,
@@ -21,6 +22,7 @@ router.use('/pgs', pgRoutes)
 router.use('/users', userRoutes)
 router.use('/cities', cityRoutes)
 router.use('/areas', areaRoutes)
+router.use('/roles', roleRoutes)
 
 // ============ Unified Bills Route ============
 router.get('/bills', authRequired, getAllBills)
