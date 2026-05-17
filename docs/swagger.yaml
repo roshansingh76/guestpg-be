@@ -1633,3 +1633,347 @@ components:
       required:
         - amount
         - mode
+
+  /roles:
+    get:
+      summary: List all roles
+      description: Returns paginated list of roles. Supports filtering by status and search.
+      security:
+        - bearerAuth: []
+      tags:
+        - Roles
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, inactive]
+          description: Filter by status
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Search by name, displayName or description
+        - in: query
+          name: skip
+          schema:
+            type: integer
+            default: 0
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of roles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      summary: Create a new role
+      description: Creates a custom role. Role name must be unique and lowercase with underscores.
+      security:
+        - bearerAuth: []
+      tags:
+        - Roles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoleRequest'
+      responses:
+        '201':
+          description: Role created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Role name already exists
+
+  /roles/permissions:
+    get:
+      summary: Get all available permissions
+      description: Returns all permissions available in the system, grouped by resource.
+      security:
+        - bearerAuth: []
+      tags:
+        - Roles
+      responses:
+        '200':
+          description: Permission list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      permissions:
+                        type: array
+                        items:
+                          type: string
+                      grouped:
+                        type: object
+                        additionalProperties:
+                          type: array
+                          items:
+                            type: string
+
+  /roles/stats:
+    get:
+      summary: Get role statistics
+      security:
+        - bearerAuth: []
+      tags:
+        - Roles
+      responses:
+        '200':
+          description: Role stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      active:
+                        type: integer
+                      inactive:
+                        type: integer
+                      system:
+                        type: integer
+                      custom:
+                        type: integer
+
+  /roles/seed:
+    post:
+      summary: Seed system roles
+      description: Seeds the four default system roles (super_admin, admin, pg_owner, pg_staff). Idempotent — safe to call multiple times. Requires super_admin.
+      security:
+        - bearerAuth: []
+      tags:
+        - Roles
+      responses:
+        '200':
+          description: System roles seeded
+
+  /roles/{id}:
+    get:
+      summary: Get role by ID
+      security:
+        - bearerAuth: []
+      tags:
+        - Roles
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Role found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Update a role
+      description: Updates displayName, description, permissions and/or status. System roles can be updated but not deleted.
+      security:
+        - bearerAuth: []
+      tags:
+        - Roles
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRoleRequest'
+      responses:
+        '200':
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a role
+      description: Deletes a custom role. System roles cannot be deleted. Requires super_admin.
+      security:
+        - bearerAuth: []
+      tags:
+        - Roles
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Role deleted
+        '400':
+          description: Cannot delete system role
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /roles/{id}/status:
+    patch:
+      summary: Toggle role status
+      security:
+        - bearerAuth: []
+      tags:
+        - Roles
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [active, inactive]
+              required:
+                - status
+      responses:
+        '200':
+          description: Status updated
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    RoleDefinition:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          example: pg_manager
+        displayName:
+          type: string
+          example: PG Manager
+        description:
+          type: string
+          nullable: true
+        permissions:
+          type: array
+          items:
+            type: string
+          example: ["pgs:read", "tenants:read", "billing:read"]
+        status:
+          type: string
+          enum: [active, inactive]
+        isSystem:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    RoleResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/RoleDefinition'
+        error:
+          nullable: true
+    RoleListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/RoleDefinition'
+            pagination:
+              type: object
+              properties:
+                skip:
+                  type: integer
+                count:
+                  type: integer
+                totalCount:
+                  type: integer
+    CreateRoleRequest:
+      type: object
+      required:
+        - name
+        - displayName
+        - permissions
+      properties:
+        name:
+          type: string
+          pattern: '^[a-z0-9_]+$'
+          example: pg_manager
+        displayName:
+          type: string
+          example: PG Manager
+        description:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+          example: ["pgs:read", "tenants:read"]
+        status:
+          type: string
+          enum: [active, inactive]
+    UpdateRoleRequest:
+      type: object
+      properties:
+        displayName:
+          type: string
+        description:
+          type: string
+          nullable: true
+        permissions:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [active, inactive]

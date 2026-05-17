@@ -297,3 +297,16 @@ model Payment {
   createdAt     DateTime    @default(now())
 }
 
+
+// ============ Roles Module ============
+model RoleDefinition {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  displayName String
+  description String?
+  permissions String[] // e.g. ["users:read", "users:write", "pgs:read"]
+  status      String   @default("active")
+  isSystem    Boolean  @default(false) // system roles cannot be deleted
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
