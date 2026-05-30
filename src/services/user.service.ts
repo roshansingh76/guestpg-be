@@ -276,16 +276,22 @@ export class UserService {
 
   // Authenticate user
   static async authenticateUser(email: string, password: string) {
-    const user = await prisma.user.findUnique({
-      where: { email },
-      include: {
-        userPGs: {
-          select: {
-            pgId: true,
+    let user
+    try {
+      user = await prisma.user.findUnique({
+        where: { email },
+        include: {
+          userPGs: {
+            select: {
+              pgId: true,
+            },
           },
         },
-      },
-    })
+      })
+    } catch (err) {
+      console.error('Prisma findUnique error in authenticateUser:', err)
+      throw err
+    }
 
     if (!user) {
       return null
