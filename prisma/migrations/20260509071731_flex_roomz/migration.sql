@@ -1,5 +1,18 @@
--- CreateEnum
-CREATE TYPE "Role" AS ENUM ('admin', 'pg_owner', 'pg_staff');
+-- CreateEnum (idempotent)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE LOWER(typname) = 'role') THEN
+        CREATE TYPE "Role" AS ENUM ('admin', 'pg_owner', 'pg_staff');
+    ELSE
+        -- Ensure missing enum value 'super_admin' exists (safe to run multiple times)
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_enum e JOIN pg_type t ON e.enumtypid = t.oid
+            WHERE LOWER(t.typname) = 'role' AND e.enumlabel = 'super_admin'
+        ) THEN
+            ALTER TYPE "Role" ADD VALUE 'super_admin';
+        END IF;
+    END IF;
+END$$;
 
 -- CreateEnum
 CREATE TYPE "UserStatus" AS ENUM ('active', 'inactive');
