@@ -4,7 +4,7 @@ import { prisma } from '../db/prisma'
 
 async function main() {
   const adminEmail = 'admin@gmail.com'
-  const adminPassword = '123456'
+  const adminPassword = '12345'
 
   await prisma.user.upsert({
     where: { email: adminEmail },

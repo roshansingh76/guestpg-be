@@ -13,8 +13,9 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
-    "db:seed": "tsx src/scripts/seed.ts"
-    ,"prisma:resolve-all": "node scripts/resolveMigrations.js"
+    "db:seed": "tsx prisma/seeds/seed.ts",
+    "prisma:seed": "tsx prisma/seeds/seed.ts",
+    "prisma:resolve-all": "node scripts/resolveMigrations.js"
   },
   "repository": {
     "type": "git",

@@ -62,7 +62,7 @@ export class RoleService {
   // ─── Create ─────────────────────────────────────────────────────────────────
 
   static async createRole(data: CreateRoleInput) {
-    return prisma.roleDefinition.create({
+    return prisma.role.create({
       data: {
         name: data.name.toLowerCase().trim(),
         displayName: data.displayName.trim(),
@@ -96,13 +96,13 @@ export class RoleService {
     }
 
     const [roles, total] = await Promise.all([
-      prisma.roleDefinition.findMany({
+      prisma.role.findMany({
         where,
         skip,
         take: limit,
         orderBy: [{ isSystem: 'desc' }, { createdAt: 'asc' }],
       }),
-      prisma.roleDefinition.count({ where }),
+      prisma.role.count({ where }),
     ])
 
     return {
@@ -118,13 +118,13 @@ export class RoleService {
   // ─── Read: single by ID ──────────────────────────────────────────────────────
 
   static async getRoleById(id: number) {
-    return prisma.roleDefinition.findUnique({ where: { id } })
+    return prisma.role.findUnique({ where: { id } })
   }
 
   // ─── Read: single by name ────────────────────────────────────────────────────
 
   static async getRoleByName(name: string) {
-    return prisma.roleDefinition.findUnique({
+    return prisma.role.findUnique({
       where: { name: name.toLowerCase().trim() },
     })
   }
@@ -133,7 +133,7 @@ export class RoleService {
 
   static async updateRole(id: number, data: UpdateRoleInput) {
     // Prevent mutating system roles' permissions/status if desired
-    const existing = await prisma.roleDefinition.findUnique({ where: { id } })
+    const existing = await prisma.role.findUnique({ where: { id } })
     if (!existing) return null
 
     const updateData: any = {}
@@ -142,18 +142,18 @@ export class RoleService {
     if (data.permissions !== undefined) updateData.permissions = data.permissions
     if (data.status !== undefined) updateData.status = data.status
 
-    return prisma.roleDefinition.update({ where: { id }, data: updateData })
+    return prisma.role.update({ where: { id }, data: updateData })
   }
 
   // ─── Delete ──────────────────────────────────────────────────────────────────
 
   static async deleteRole(id: number) {
-    const existing = await prisma.roleDefinition.findUnique({ where: { id } })
+    const existing = await prisma.role.findUnique({ where: { id } })
     if (!existing) return null
     if (existing.isSystem) {
       throw new Error('System roles cannot be deleted')
     }
-    return prisma.roleDefinition.delete({ where: { id } })
+    return prisma.role.delete({ where: { id } })
   }
 
   // ─── Seed default system roles ───────────────────────────────────────────────
@@ -207,7 +207,7 @@ export class RoleService {
     ]
 
     for (const role of systemRoles) {
-      await prisma.roleDefinition.upsert({
+      await prisma.role.upsert({
         where: { name: role.name },
         update: {
           displayName: role.displayName,
@@ -222,18 +222,18 @@ export class RoleService {
       })
     }
 
-    return prisma.roleDefinition.findMany({ where: { isSystem: true } })
+    return prisma.role.findMany({ where: { isSystem: true } })
   }
 
   // ─── Stats ───────────────────────────────────────────────────────────────────
 
   static async getRoleStats() {
     const [total, active, inactive, system, custom] = await Promise.all([
-      prisma.roleDefinition.count(),
-      prisma.roleDefinition.count({ where: { status: 'active' } }),
-      prisma.roleDefinition.count({ where: { status: 'inactive' } }),
-      prisma.roleDefinition.count({ where: { isSystem: true } }),
-      prisma.roleDefinition.count({ where: { isSystem: false } }),
+      prisma.role.count(),
+      prisma.role.count({ where: { status: 'active' } }),
+      prisma.role.count({ where: { status: 'inactive' } }),
+      prisma.role.count({ where: { isSystem: true } }),
+      prisma.role.count({ where: { isSystem: false } }),
     ])
     return { total, active, inactive, system, custom }
   }

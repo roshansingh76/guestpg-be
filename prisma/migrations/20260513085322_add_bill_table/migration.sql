@@ -1,54 +1,54 @@
 /*
   Warnings:
 
-  - You are about to drop the `RentBill` table. If the table is not empty, all the data it contains will be lost.
+  - You are about to drop the `rent_bills` table. If the table is not empty, all the data it contains will be lost.
 
 */
 -- DropForeignKey
-ALTER TABLE "BillItem" DROP CONSTRAINT "BillItem_billId_fkey";
+ALTER TABLE "bill_items" DROP CONSTRAINT "bill_items_bill_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "Payment" DROP CONSTRAINT "Payment_billId_fkey";
+ALTER TABLE "payments" DROP CONSTRAINT "payments_bill_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "RentBill" DROP CONSTRAINT "RentBill_pgId_fkey";
+ALTER TABLE "rent_bills" DROP CONSTRAINT "rent_bills_pg_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "RentBill" DROP CONSTRAINT "RentBill_tenantId_fkey";
+ALTER TABLE "rent_bills" DROP CONSTRAINT "rent_bills_tenant_id_fkey";
 
 -- DropTable
-DROP TABLE "RentBill";
+DROP TABLE "rent_bills";
 
 -- CreateTable
-CREATE TABLE "Bill" (
+CREATE TABLE "bills" (
     "id" SERIAL NOT NULL,
-    "pgId" INTEGER NOT NULL,
-    "tenantId" INTEGER NOT NULL,
-    "billMonth" INTEGER NOT NULL,
-    "billYear" INTEGER NOT NULL,
-    "totalAmount" DOUBLE PRECISION NOT NULL,
-    "paidAmount" DOUBLE PRECISION NOT NULL DEFAULT 0,
-    "dueAmount" DOUBLE PRECISION NOT NULL,
-    "dueDate" TIMESTAMP(3) NOT NULL,
+    "pg_id" INTEGER NOT NULL,
+    "tenant_id" INTEGER NOT NULL,
+    "bill_month" INTEGER NOT NULL,
+    "bill_year" INTEGER NOT NULL,
+    "total_amount" DOUBLE PRECISION NOT NULL,
+    "paid_amount" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "due_amount" DOUBLE PRECISION NOT NULL,
+    "due_date" TIMESTAMP(3) NOT NULL,
     "status" "BillStatus" NOT NULL DEFAULT 'pending',
     "notes" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "Bill_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "bills_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Bill_tenantId_billMonth_billYear_key" ON "Bill"("tenantId", "billMonth", "billYear");
+CREATE UNIQUE INDEX "bills_tenant_id_bill_month_bill_year_key" ON "bills"("tenant_id", "bill_month", "bill_year");
 
 -- AddForeignKey
-ALTER TABLE "Bill" ADD CONSTRAINT "Bill_pgId_fkey" FOREIGN KEY ("pgId") REFERENCES "PG"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "bills" ADD CONSTRAINT "bills_pg_id_fkey" FOREIGN KEY ("pg_id") REFERENCES "pgs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Bill" ADD CONSTRAINT "Bill_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "bills" ADD CONSTRAINT "bills_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "BillItem" ADD CONSTRAINT "BillItem_billId_fkey" FOREIGN KEY ("billId") REFERENCES "Bill"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "bill_items" ADD CONSTRAINT "bill_items_bill_id_fkey" FOREIGN KEY ("bill_id") REFERENCES "bills"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Payment" ADD CONSTRAINT "Payment_billId_fkey" FOREIGN KEY ("billId") REFERENCES "Bill"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "payments" ADD CONSTRAINT "payments_bill_id_fkey" FOREIGN KEY ("bill_id") REFERENCES "bills"("id") ON DELETE CASCADE ON UPDATE CASCADE;

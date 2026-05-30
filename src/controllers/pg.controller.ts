@@ -11,6 +11,7 @@ import {
   sendList,
   sendConflict,
 } from '../utils/response'
+import { buildMissingFieldDetails } from '../utils/validation'
 
 export const createPG = async (req: Request, res: Response) => {
   try {
@@ -32,20 +33,20 @@ export const createPG = async (req: Request, res: Response) => {
       isFoodAvailable,
     } = req.body
 
-    if (
-      !pgName ||
-      !ownerName ||
-      !ownerPhone ||
-      !ownerEmail ||
-      !addressLine1 ||
-      !areaId ||
-      !cityId ||
-      !state ||
-      latitude == null ||
-      longitude == null ||
-      !pgType
-    ) {
-      return sendBadRequest(res, 'Missing required fields')
+    const missingFields = buildMissingFieldDetails(req.body, [
+      'pgName',
+      'ownerName',
+      'ownerPhone',
+      'ownerEmail',
+      'addressLine1',
+      'state',
+      'latitude',
+      'longitude',
+      'pgType',
+    ])
+
+    if (missingFields.length > 0) {
+      return sendBadRequest(res, 'Missing required fields', missingFields)
     }
 
     const pg = await PGService.createPG({
@@ -56,8 +57,8 @@ export const createPG = async (req: Request, res: Response) => {
       addressLine1,
       addressLine2,
       nearbyMark,
-      areaId: Number(areaId),
-      cityId: Number(cityId),
+      areaId: areaId ? Number(areaId) : undefined,
+      cityId: cityId ? Number(cityId) : undefined,
       state,
       latitude: Number(latitude),
       longitude: Number(longitude),

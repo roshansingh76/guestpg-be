@@ -9,8 +9,8 @@ export interface CreatePGInput {
   addressLine1: string
   addressLine2?: string
   nearbyMark?: string
-  areaId: number
-  cityId: number
+  areaId?: number
+  cityId?: number
   state: string
   latitude: number
   longitude: number
@@ -41,13 +41,22 @@ export interface UpdatePGInput {
 export class PGService {
   // Create new PG
   static async createPG(data: CreatePGInput) {
+    // Remove undefined values
+    const cleanData = Object.fromEntries(
+      Object.entries(data).filter(([, value]) => value !== undefined)
+    ) as CreatePGInput
+
     return prisma.pG.create({
-      data,
+      data: cleanData,
       include: {
         rooms: true,
         photos: true,
-        city: true,
-        area: true,
+        city: {
+          select: { id: true, name: true, state: true },
+        },
+        area: {
+          select: { id: true, name: true },
+        },
       },
     })
   }
@@ -93,8 +102,8 @@ export class PGService {
         include: {
           rooms: true,
           photos: true,
-          city: true,
-          area: true,
+          city: { select: { id: true, name: true, state: true } },
+          area: { select: { id: true, name: true } },
         },
         skip,
         take: limit,
@@ -117,12 +126,12 @@ export class PGService {
   static async getPGById(id: number) {
     return prisma.pG.findUnique({
       where: { id },
-      include: {
-        rooms: true,
-        photos: true,
-        city: true,
-        area: true,
-      },
+        include: {
+          rooms: true,
+          photos: true,
+          city: { select: { id: true, name: true, state: true } },
+          area: { select: { id: true, name: true } },
+        },
     })
   }
 
@@ -131,12 +140,12 @@ export class PGService {
     return prisma.pG.update({
       where: { id },
       data,
-      include: {
-        rooms: true,
-        photos: true,
-        city: true,
-        area: true,
-      },
+        include: {
+          rooms: true,
+          photos: true,
+          city: { select: { id: true, name: true, state: true } },
+          area: { select: { id: true, name: true } },
+        },
     })
   }
 

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { UserService } from '../services/user.service'
+import { RoleService } from '../services/role.service'
 import { logger } from '../utils/logger'
 import {
   sendBadRequest,
@@ -15,16 +16,25 @@ export const createUser = async (req: Request, res: Response) => {
   try {
     const { name, email, phone, password, role, pgId, status } = req.body
 
-    if (!name || !email || !phone || !password || !role) {
+    // Accept numeric role id (preferred). If a string role name is sent, allow it too.
+    if (!name || !email || !phone || !password || role === undefined || role === null) {
       return sendBadRequest(res, 'Missing required fields')
     }
 
-    if (!['admin', 'pg_owner', 'pg_staff'].includes(role)) {
-      return sendBadRequest(res, 'Invalid role. Must be admin, pg_owner, or pg_staff')
+    // Normalize role input: if numeric -> treat as roleId, else treat as role name
+    let roleRecord: any = null
+    if (!isNaN(Number(role))) {
+      roleRecord = await RoleService.getRoleById(Number(role))
+    } else {
+      roleRecord = await RoleService.getRoleByName(String(role))
     }
 
-    if ((role === 'pg_owner' || role === 'pg_staff') && !pgId && !Array.isArray(req.body.pgIds)) {
-      return sendBadRequest(res, `pgId or pgIds is required for role: ${role}`)
+    if (!roleRecord) {
+      return sendBadRequest(res, 'Invalid role. Must be a valid role id or role name')
+    }
+
+    if ((roleRecord.name === 'pg_owner' || roleRecord.name === 'pg_staff') && !pgId && !Array.isArray(req.body.pgIds)) {
+      return sendBadRequest(res, `pgId or pgIds is required for role: ${roleRecord.name}`)
     }
 
     const user = await UserService.createUser({
@@ -32,7 +42,7 @@ export const createUser = async (req: Request, res: Response) => {
       email,
       phone,
       password,
-      role,
+      roleId: roleRecord.id,
       pgId,
       pgIds: Array.isArray(req.body.pgIds) ? req.body.pgIds.map(Number) : undefined,
       status: status || 'active',
@@ -53,7 +63,11 @@ export const getAllUsers = async (req: Request, res: Response) => {
     const { role, status, pgId, skip = 0, limit = 10 } = req.query
 
     const filters: any = {}
-    if (role) filters.role = role
+    if (role) {
+      // role query can be id or name; prefer numeric id
+      if (!isNaN(Number(role))) filters.roleId = Number(role)
+      else filters.role = String(role)
+    }
     if (status) filters.status = status
     if (pgId) filters.pgId = Number(pgId)
 
@@ -91,19 +105,26 @@ export const updateUser = async (req: Request, res: Response) => {
     const { id } = req.params
     const { name, email, phone, role, pgId, status, password } = req.body
 
-    if (role && !['admin', 'pg_owner', 'pg_staff'].includes(role)) {
-      return sendBadRequest(res, 'Invalid role. Must be admin, pg_owner, or pg_staff')
+    let roleRecord: any = null
+    if (role !== undefined) {
+      if (!isNaN(Number(role))) {
+        roleRecord = await RoleService.getRoleById(Number(role))
+      } else {
+        roleRecord = await RoleService.getRoleByName(String(role))
+      }
+
+      if (!roleRecord) return sendBadRequest(res, 'Invalid role ID or name')
     }
 
-    if ((role === 'pg_owner' || role === 'pg_staff') && !pgId && !Array.isArray(req.body.pgIds)) {
-      return sendBadRequest(res, `pgId or pgIds is required for role: ${role}`)
+    if (roleRecord && (roleRecord.name === 'pg_owner' || roleRecord.name === 'pg_staff') && !pgId && !Array.isArray(req.body.pgIds)) {
+      return sendBadRequest(res, `pgId or pgIds is required for role: ${roleRecord.name}`)
     }
 
     const user = await UserService.updateUser(Number(id), {
       name,
       email,
       phone,
-      role,
+      roleId: roleRecord ? roleRecord.id : undefined,
       pgId,
       pgIds: Array.isArray(req.body.pgIds) ? req.body.pgIds.map(Number) : undefined,
       status,

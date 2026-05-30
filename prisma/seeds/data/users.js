@@ -8,19 +8,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const prisma_1 = require("./src/db/prisma");
-function main() {
+exports.users = void 0;
+exports.hashSeedPasswords = hashSeedPasswords;
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const SALT_ROUNDS = 10;
+exports.users = [
+    {
+        name: 'Super Admin',
+        email: 'admin@flexiroomz.com',
+        phone: '9999999999',
+        password: 'Admin@123',
+        role: 'super_admin',
+        status: 'active',
+        pgId: null
+    }
+];
+function hashSeedPasswords() {
     return __awaiter(this, void 0, void 0, function* () {
-        const rows = yield prisma_1.prisma.$queryRawUnsafe(`SELECT column_name FROM information_schema.columns WHERE table_name='PGPhoto' AND column_name='categoryId';`);
-        console.log(rows);
+        return Promise.all(exports.users.map((user) => __awaiter(this, void 0, void 0, function* () {
+            return (Object.assign(Object.assign({}, user), { passwordHash: yield bcryptjs_1.default.hash(user.password, SALT_ROUNDS) }));
+        })));
     });
 }
-main()
-    .catch((e) => {
-    console.error(e);
-    process.exit(1);
-})
-    .finally(() => __awaiter(void 0, void 0, void 0, function* () {
-    yield prisma_1.prisma.$disconnect();
-}));

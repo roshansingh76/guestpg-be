@@ -11,6 +11,7 @@ import {
   sendConflict,
 } from '../utils/response'
 import type { AuthPayload } from '../middleware/auth'
+import { buildMissingFieldDetails } from '../utils/validation'
 
 export const createRoom = async (req: Request, res: Response) => {
   try {
@@ -21,15 +22,17 @@ export const createRoom = async (req: Request, res: Response) => {
     }
     const { roomType, roomNumber, totalBeds, availableBeds, pricePerBed, acType } = req.body
 
-    if (
-      !roomType ||
-      !roomNumber ||
-      totalBeds === undefined ||
-      availableBeds === undefined ||
-      pricePerBed === undefined ||
-      !acType
-    ) {
-      return sendBadRequest(res, 'Missing required fields')
+    const missingFields = buildMissingFieldDetails(req.body, [
+      'roomType',
+      'roomNumber',
+      'totalBeds',
+      'availableBeds',
+      'pricePerBed',
+      'acType',
+    ])
+
+    if (missingFields.length > 0) {
+      return sendBadRequest(res, 'Missing required fields', missingFields)
     }
 
     const room = await RoomService.createRoom({

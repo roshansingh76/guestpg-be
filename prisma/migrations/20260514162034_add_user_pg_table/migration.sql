@@ -1,18 +1,18 @@
 -- CreateTable
-CREATE TABLE "UserPG" (
+CREATE TABLE "user_pgs" (
     "id" SERIAL NOT NULL,
-    "userId" INTEGER NOT NULL,
-    "pgId" INTEGER NOT NULL,
-    "assignedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "user_id" INTEGER NOT NULL,
+    "pg_id" INTEGER NOT NULL,
+    "assigned_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "UserPG_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "user_pgs_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "UserPG_userId_pgId_key" ON "UserPG"("userId", "pgId");
+CREATE UNIQUE INDEX "user_pgs_user_id_pg_id_key" ON "user_pgs"("user_id", "pg_id");
 
 -- AddForeignKey
-ALTER TABLE "UserPG" ADD CONSTRAINT "UserPG_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "user_pgs" ADD CONSTRAINT "user_pgs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "UserPG" ADD CONSTRAINT "UserPG_pgId_fkey" FOREIGN KEY ("pgId") REFERENCES "PG"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "user_pgs" ADD CONSTRAINT "user_pgs_pg_id_fkey" FOREIGN KEY ("pg_id") REFERENCES "pgs"("id") ON DELETE CASCADE ON UPDATE CASCADE;

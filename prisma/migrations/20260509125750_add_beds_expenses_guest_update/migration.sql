@@ -1,2 +1,1 @@
--- AlterEnum
-ALTER TYPE "Role" ADD VALUE 'super_admin';
+-- No-op: Role enum has been migrated to a table reference in Prisma schema.

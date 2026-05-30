@@ -22,7 +22,11 @@ export const errorHandler = (
   const status = err?.statusCode || 500
   const code = err?.code || 'INTERNAL_SERVER_ERROR'
   const message = err?.message || 'Internal server error'
-  const details = err?.details || []
+  const details = Array.isArray(err?.details)
+    ? err.details
+    : Array.isArray(err?.errors)
+    ? err.errors
+    : []
 
   return sendError(res, message, code, details, status)
 }

@@ -1,0 +1,1210 @@
+{
+  "info": {
+    "_postman_id": "flexi-roomz-api-v1",
+    "name": "Flexi Roomz API",
+    "description": "Complete API collection for Flexi Roomz Admin Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@flexiroomz.com\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/login",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/profile",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"Admin@123\",\n  \"newPassword\": \"NewPassword@123\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/change-password",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "change-password"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cities",
+      "item": [
+        {
+          "name": "Get All Cities",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/cities",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "cities"]
+            }
+          }
+        },
+        {
+          "name": "Get City By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/cities/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "cities", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create City",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bangalore\",\n  \"state\": \"Karnataka\",\n  \"isActive\": 1\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/cities",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "cities"]
+            }
+          }
+        },
+        {
+          "name": "Update City",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bangalore\",\n  \"state\": \"Karnataka\",\n  \"isActive\": 1\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/cities/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "cities", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete City",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/cities/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "cities", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Areas",
+      "item": [
+        {
+          "name": "Get All Areas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/areas",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "areas"]
+            }
+          }
+        },
+        {
+          "name": "Get Area By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/areas/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "areas", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Area",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"White Field\",\n  \"cityId\": 1,\n  \"isActive\": 1\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/areas",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "areas"]
+            }
+          }
+        },
+        {
+          "name": "Update Area",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"White Field\",\n  \"cityId\": 1,\n  \"isActive\": 1\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/areas/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "areas", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Area",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/areas/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "areas", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "PGs",
+      "item": [
+        {
+          "name": "Get All PGs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs"]
+            }
+          }
+        },
+        {
+          "name": "Get PG By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create PG",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pgName\": \"Elite PG\",\n  \"ownerName\": \"Rajesh Kumar\",\n  \"ownerPhone\": \"9876543210\",\n  \"ownerEmail\": \"owner@elitepg.com\",\n  \"addressLine1\": \"123 Main Street\",\n  \"addressLine2\": \"Sector 31\",\n  \"areaId\": 1,\n  \"cityId\": 1,\n  \"state\": \"Haryana\",\n  \"latitude\": 28.4595,\n  \"longitude\": 77.0266,\n  \"pgType\": \"Boys\",\n  \"numberOfRooms\": 5,\n  \"isFoodAvailable\": true,\n  \"isActive\": 1\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs"]
+            }
+          }
+        },
+        {
+          "name": "Update PG",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pgName\": \"Elite PG Updated\",\n  \"ownerName\": \"Rajesh Kumar\",\n  \"ownerPhone\": \"9876543210\",\n  \"ownerEmail\": \"owner@elitepg.com\",\n  \"addressLine1\": \"123 Main Street\",\n  \"addressLine2\": \"Sector 31\",\n  \"areaId\": 1,\n  \"cityId\": 1,\n  \"state\": \"Haryana\",\n  \"latitude\": 28.4595,\n  \"longitude\": 77.0266,\n  \"pgType\": \"Boys\",\n  \"numberOfRooms\": 5,\n  \"isFoodAvailable\": true,\n  \"isActive\": 1\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1"]
+            }
+          }
+        },
+        {
+          "name": "Change PG Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1/status",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1", "status"]
+            }
+          }
+        },
+        {
+          "name": "Delete PG",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rooms",
+      "item": [
+        {
+          "name": "Get Rooms by PG",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1/rooms",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1", "rooms"]
+            }
+          }
+        },
+        {
+          "name": "Get Room By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1/rooms/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1", "rooms", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Room",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomType\": \"Single\",\n  \"roomNumber\": \"101\",\n  \"totalBeds\": 1,\n  \"availableBeds\": 1,\n  \"pricePerBed\": 8000,\n  \"acType\": \"AC\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1/rooms",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1", "rooms"]
+            }
+          }
+        },
+        {
+          "name": "Update Room",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomType\": \"Single\",\n  \"roomNumber\": \"101\",\n  \"totalBeds\": 1,\n  \"availableBeds\": 0,\n  \"pricePerBed\": 8500,\n  \"acType\": \"AC\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1/rooms/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1", "rooms", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Room",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1/rooms/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1", "rooms", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tenants",
+      "item": [
+        {
+          "name": "Get All Tenants",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1/tenants",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1", "tenants"]
+            }
+          }
+        },
+        {
+          "name": "Get Tenant By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1/tenants/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1", "tenants", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Tenant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "John Doe",
+                  "type": "text"
+                },
+                {
+                  "key": "phone",
+                  "value": "9876543210",
+                  "type": "text"
+                },
+                {
+                  "key": "aadhar",
+                  "value": "123456789012",
+                  "type": "text"
+                },
+                {
+                  "key": "address",
+                  "value": "123 Home Street\",
+                  "type": "text"
+                },
+                {
+                  "key": "emergency",
+                  "value": "Emergency Contact\",
+                  "type": "text"
+                },
+                {
+                  "key": "emergencyPhone",
+                  "value": "9876543211",
+                  "type": "text"
+                },
+                {
+                  "key": "roomId",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "moveInDate",
+                  "value": "2024-06-01",
+                  "type": "text"
+                },
+                {
+                  "key": "photo",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "idProof",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1/tenants",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1", "tenants"]
+            }
+          }
+        },
+        {
+          "name": "Update Tenant",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "John Doe Updated",
+                  "type": "text"
+                },
+                {
+                  "key": "phone",
+                  "value": "9876543210",
+                  "type": "text"
+                },
+                {
+                  "key": "aadhar",
+                  "value": "123456789012",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1/tenants/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1", "tenants", "1"]
+            }
+          }
+        },
+        {
+          "name": "Checkout Tenant",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1/tenants/1/checkout",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1", "tenants", "1", "checkout"]
+            }
+          }
+        },
+        {
+          "name": "Delete Tenant",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1/tenants/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1", "tenants", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Expenses",
+      "item": [
+        {
+          "name": "Get All Expenses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1/expenses",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1", "expenses"]
+            }
+          }
+        },
+        {
+          "name": "Get Expense By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1/expenses/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1", "expenses", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Expense",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"maintenance\",\n  \"amount\": 5000,\n  \"description\": \"Plumbing repair\",\n  \"date\": \"2024-06-15\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1/expenses",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1", "expenses"]
+            }
+          }
+        },
+        {
+          "name": "Update Expense",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"maintenance\",\n  \"amount\": 5500,\n  \"description\": \"Plumbing and electrical repair\",\n  \"date\": \"2024-06-15\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1/expenses/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1", "expenses", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Expense",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1/expenses/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1", "expenses", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Billing",
+      "item": [
+        {
+          "name": "Get All Bills",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/bills",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "bills"]
+            }
+          }
+        },
+        {
+          "name": "Get Bill By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/bills/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "bills", "1"]
+            }
+          }
+        },
+        {
+          "name": "Add Bill Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Rent\",\n  \"amount\": 8000\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/bills/1/items",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "bills", "1", "items"]
+            }
+          }
+        },
+        {
+          "name": "Update Bill Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Rent\",\n  \"amount\": 8500\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/bills/1/items/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "bills", "1", "items", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/users",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users"]
+            }
+          }
+        },
+        {
+          "name": "Get User By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/users/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Staff Member\",\n  \"email\": \"staff@flexiroomz.com\",\n  \"phone\": \"9876543212\",\n  \"password\": \"StaffPass@123\",\n  \"roleId\": 3,\n  \"isActive\": 1\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/users",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users"]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Staff Member Updated\",\n  \"email\": \"staff@flexiroomz.com\",\n  \"phone\": \"9876543212\",\n  \"roleId\": 3,\n  \"isActive\": 1\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/users/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/users/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Roles",
+      "item": [
+        {
+          "name": "Get All Roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/roles",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "roles"]
+            }
+          }
+        },
+        {
+          "name": "Get Role By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/roles/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "roles", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"accountant\",\n  \"displayName\": \"Accountant\",\n  \"description\": \"Accountant role for billing\",\n  \"permissions\": [\n    \"manage_billing\",\n    \"manage_expenses\"\n  ],\n  \"isActive\": 1,\n  \"isSystem\": false\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/roles",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "roles"]
+            }
+          }
+        },
+        {
+          "name": "Update Role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"accountant\",\n  \"displayName\": \"Accountant\",\n  \"description\": \"Accountant role for billing and expenses\",\n  \"permissions\": [\n    \"manage_billing\",\n    \"manage_expenses\"\n  ],\n  \"isActive\": 1,\n  \"isSystem\": false\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/roles/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "roles", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Role",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/roles/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "roles", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "PG Photos",
+      "item": [
+        {
+          "name": "Get PG Photos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1/photos",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1", "photos"]
+            }
+          }
+        },
+        {
+          "name": "Add PG Photo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "categoryId",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "photo",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1/photos",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1", "photos"]
+            }
+          }
+        },
+        {
+          "name": "Delete PG Photo",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/pgs/1/photos/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "pgs", "1", "photos", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{BASE_URL}}/api/health",
+          "host": ["{{BASE_URL}}"],
+          "path": ["api", "health"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "TOKEN",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

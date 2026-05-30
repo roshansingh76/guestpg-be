@@ -6,13 +6,6 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Role {
-  admin
-  super_admin
-  pg_owner
-  pg_staff
-}
-
 enum UserStatus {
   active
   inactive
@@ -39,48 +32,57 @@ model User {
   name         String
   email        String     @unique
   phone        String
-  passwordHash String
-  role         Role       @default(pg_owner)
+  passwordHash String     @map("password_hash")
+  roleId       Int        @map("role_id")
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Restrict)
   status       UserStatus @default(active)
-  pgId         Int?
-  pg           PG?        @relation(fields: [pgId], references: [id], onDelete: SetNull)
+  isActive     Int        @default(1) @map("is_active")
   userPGs      UserPG[]
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  pg           PG?        @relation(fields: [pGId], references: [id])
+  pGId         Int?
+
+  @@map("users")
 }
 
 model Tenant {
   id             Int       @id @default(autoincrement())
-  pgId           Int
+  pgId           Int       @map("pg_id")
   pg             PG        @relation(fields: [pgId], references: [id], onDelete: Cascade)
-  roomId         Int?
+  roomId         Int?      @map("room_id")
   room           PGRoom?   @relation(fields: [roomId], references: [id], onDelete: SetNull)
   name           String
   phone          String
   aadhar         String
   address        String?
   emergency      String?
-  emergencyPhone String?
-  idProofUrl     String?
-  photoUrl       String?
-  moveInDate     DateTime  @default(now())
-  moveOutDate    DateTime?
+  emergencyPhone String?   @map("emergency_phone")
+  idProofUrl     String?   @map("id_proof_url")
+  photoUrl       String?   @map("photo_url")
+  isActive       Int       @default(1) @map("is_active")
+  moveInDate     DateTime  @default(now()) @map("move_in_date")
+  moveOutDate    DateTime? @map("move_out_date")
   status         String    @default("active")
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
   bills          Bill[]
   payments       Payment[]
+
+  @@map("pg_tenants")
 }
 
 model Room {
   id            Int      @id @default(autoincrement())
   number        String   @unique
   type          String
-  totalBeds     Int
-  availableBeds Int
+  totalBeds     Int      @map("total_beds")
+  availableBeds Int      @map("available_beds")
   rent          Int
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("rooms")
 }
 
 model Bed {
@@ -88,103 +90,114 @@ model Bed {
   number    String   @unique
   room      String
   status    String   @default("vacant")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("beds")
 }
 
 // ============ City & Area Master Models ============
 model City {
-  id       Int      @id @default(autoincrement())
-  name     String   @unique
-  state    String?
-  status   String   @default("active")
-  areas    Area[]
-  pgs      PG[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  state     String?
+  isActive  Int      @default(1) @map("is_active")
+  areas     Area[]
+  pgs       PG[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("cities")
 }
 
 model Area {
   id        Int      @id @default(autoincrement())
   name      String
-  cityId    Int
+  cityId    Int      @map("city_id")
   city      City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
-  status    String   @default("active")
+  isActive  Int      @default(1) @map("is_active")
   pgs       PG[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@unique([name, cityId])
+  @@map("areas")
 }
 
 // PG (Paying Guest) Models
 model PG {
-  id               Int       @id @default(autoincrement())
-  pgName           String
-  ownerName        String
-  ownerPhone       String
-  ownerEmail       String    @unique
-  addressLine1     String
-  addressLine2     String?
-  nearbyMark       String?
-  areaId           Int
-  area             Area      @relation(fields: [areaId], references: [id], onDelete: Restrict)
-  cityId           Int
-  city             City      @relation(fields: [cityId], references: [id], onDelete: Restrict)
-  state            String
-  latitude         Float
-  longitude        Float
-  pgType           PGType
-  numberOfRooms    Int
-  isFoodAvailable  Boolean   @default(false)
-  status           PGStatus  @default(active)
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  rooms            PGRoom[]
-  photos           PGPhoto[]
-  users            User[]
-  userPGs          UserPG[]
-  expenses         Expense[]
-  tenants          Tenant[]
-  bills            Bill[]
-  payments         Payment[]
+  id              Int       @id @default(autoincrement())
+  pgName          String    @map("pg_name")
+  ownerName       String    @map("owner_name")
+  ownerPhone      String    @map("owner_phone")
+  ownerEmail      String    @unique @map("owner_email")
+  addressLine1    String    @map("address_line1")
+  addressLine2    String?   @map("address_line2")
+  isActive        Int       @default(1) @map("is_active")
+  areaId          Int?      @map("area_id")
+  area            Area?     @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  cityId          Int?      @map("city_id")
+  city            City?     @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  state           String
+  latitude        Float
+  longitude       Float
+  pgType          PGType    @map("pg_type")
+  numberOfRooms   Int       @map("number_of_rooms")
+  isFoodAvailable Boolean   @default(false) @map("is_food_available")
+  status          PGStatus  @default(active)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  rooms           PGRoom[]
+  photos          PGPhoto[]
+  users           User[]
+  userPGs         UserPG[]
+  expenses        Expense[]
+  tenants         Tenant[]
+  bills           Bill[]
+  payments        Payment[]
+
+  @@map("pgs")
 }
 
 model PGRoom {
-  id              Int      @id @default(autoincrement())
-  pgId            Int
-  pg              PG       @relation(fields: [pgId], references: [id], onDelete: Cascade)
-  roomType        String
-  roomNumber      String
-  totalBeds       Int
-  availableBeds   Int
-  pricePerBed     Int
-  acType          RoomType
-  tenants         Tenant[]
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  pgId          Int      @map("pg_id")
+  pg            PG       @relation(fields: [pgId], references: [id], onDelete: Cascade)
+  roomType      String   @map("room_type")
+  roomNumber    String   @map("room_number")
+  totalBeds     Int      @map("total_beds")
+  availableBeds Int      @map("available_beds")
+  pricePerBed   Int      @map("price_per_bed")
+  acType        RoomType @map("ac_type")
+  tenants       Tenant[]
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   @@unique([pgId, roomNumber])
+  @@map("pg_rooms")
 }
 
 model PGPhotoCategory {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
   photos      PGPhoto[]
+
+  @@map("pg_photo_categories")
 }
 
 model UserPG {
   id         Int      @id @default(autoincrement())
-  userId     Int
-  pgId       Int
+  userId     Int      @map("user_id")
+  pgId       Int      @map("pg_id")
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   pg         PG       @relation(fields: [pgId], references: [id], onDelete: Cascade)
-  assignedAt DateTime @default(now())
+  assignedAt DateTime @default(now()) @map("assigned_at")
 
   @@unique([userId, pgId])
+  @@map("pg_users")
 }
 
 enum ExpenseCategory {
@@ -200,25 +213,29 @@ enum ExpenseCategory {
 
 model Expense {
   id          Int             @id @default(autoincrement())
-  pgId        Int
+  pgId        Int             @map("pg_id")
   pg          PG              @relation(fields: [pgId], references: [id], onDelete: Cascade)
   category    ExpenseCategory
   amount      Float
   description String?
   date        DateTime        @default(now())
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  @@map("expenses")
 }
 
 model PGPhoto {
-  id          Int      @id @default(autoincrement())
-  pgId        Int
-  pg          PG       @relation(fields: [pgId], references: [id], onDelete: Cascade)
-  categoryId  Int
-  category    PGPhotoCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  photoUrl    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         Int             @id @default(autoincrement())
+  pgId       Int             @map("pg_id")
+  pg         PG              @relation(fields: [pgId], references: [id], onDelete: Cascade)
+  categoryId Int             @map("category_id")
+  category   PGPhotoCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  photoUrl   String          @map("photo_url")
+  createdAt  DateTime        @default(now()) @map("created_at")
+  updatedAt  DateTime        @updatedAt @map("updated_at")
+
+  @@map("pg_photos")
 }
 
 // ============ Billing Models ============
@@ -251,62 +268,69 @@ enum BillCategory {
 }
 
 model Bill {
-  id           Int        @id @default(autoincrement())
-  pgId         Int
-  pg           PG         @relation(fields: [pgId], references: [id], onDelete: Cascade)
-  tenantId     Int
-  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  billMonth    Int        // 1-12
-  billYear     Int
-  totalAmount  Float
-  paidAmount   Float      @default(0)
-  dueAmount    Float
-  dueDate      DateTime
-  status       BillStatus @default(pending)
-  notes        String?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  items        BillItem[]
-  payments     Payment[]
+  id          Int        @id @default(autoincrement())
+  pgId        Int        @map("pg_id")
+  pg          PG         @relation(fields: [pgId], references: [id], onDelete: Cascade)
+  tenantId    Int        @map("tenant_id")
+  tenant      Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  billMonth   Int        @map("bill_month")
+  billYear    Int        @map("bill_year")
+  totalAmount Float      @map("total_amount")
+  paidAmount  Float      @default(0) @map("paid_amount")
+  dueAmount   Float      @map("due_amount")
+  dueDate     DateTime   @map("due_date")
+  status      BillStatus @default(pending)
+  notes       String?
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  items       BillItem[]
+  payments    Payment[]
 
   @@unique([tenantId, billMonth, billYear])
+  @@map("bills")
 }
 
 model BillItem {
-  id          Int         @id @default(autoincrement())
-  billId      Int
-  bill        Bill        @relation(fields: [billId], references: [id], onDelete: Cascade)
-  label       BillCategory @map("label")
-  amount      Float
-  createdAt   DateTime    @default(now())
+  id        Int          @id @default(autoincrement())
+  billId    Int          @map("bill_id")
+  bill      Bill         @relation(fields: [billId], references: [id], onDelete: Cascade)
+  label     BillCategory
+  amount    Float
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  @@map("bill_items")
 }
 
 model Payment {
-  id            Int         @id @default(autoincrement())
-  billId        Int
-  bill          Bill        @relation(fields: [billId], references: [id], onDelete: Cascade)
-  pgId          Int
-  pg            PG          @relation(fields: [pgId], references: [id], onDelete: Cascade)
-  tenantId      Int
-  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  amount        Float
-  mode          PaymentMode
-  referenceNo   String?
-  note          String?
-  paidAt        DateTime    @default(now())
-  createdAt     DateTime    @default(now())
+  id          Int         @id @default(autoincrement())
+  billId      Int         @map("bill_id")
+  bill        Bill        @relation(fields: [billId], references: [id], onDelete: Cascade)
+  pgId        Int         @map("pg_id")
+  pg          PG          @relation(fields: [pgId], references: [id], onDelete: Cascade)
+  tenantId    Int         @map("tenant_id")
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  amount      Float
+  mode        PaymentMode
+  referenceNo String?     @map("reference_no")
+  note        String?
+  paidAt      DateTime    @default(now()) @map("paid_at")
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  @@map("payments")
 }
 
-
 // ============ Roles Module ============
-model RoleDefinition {
+model Role {
   id          Int      @id @default(autoincrement())
   name        String   @unique
-  displayName String
+  displayName String   @map("display_name")
   description String?
-  permissions String[] // e.g. ["users:read", "users:write", "pgs:read"]
-  status      String   @default("active")
-  isSystem    Boolean  @default(false) // system roles cannot be deleted
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  permissions String[]
+  isActive    Int      @default(1) @map("is_active")
+  isSystem    Boolean  @default(false) @map("is_system")
+  users       User[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("roles")
 }

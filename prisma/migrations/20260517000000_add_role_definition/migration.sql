@@ -1,17 +1,20 @@
 -- CreateTable
-CREATE TABLE "RoleDefinition" (
+CREATE TABLE "roles" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
-    "displayName" TEXT NOT NULL,
+    "display_name" TEXT NOT NULL,
     "description" TEXT,
     "permissions" TEXT[],
     "status" TEXT NOT NULL DEFAULT 'active',
-    "isSystem" BOOLEAN NOT NULL DEFAULT false,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "is_system" BOOLEAN NOT NULL DEFAULT false,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "RoleDefinition_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "roles_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "RoleDefinition_name_key" ON "RoleDefinition"("name");
+CREATE UNIQUE INDEX "roles_name_key" ON "roles"("name");
+
+-- AddForeignKey
+ALTER TABLE "users" ADD CONSTRAINT "users_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

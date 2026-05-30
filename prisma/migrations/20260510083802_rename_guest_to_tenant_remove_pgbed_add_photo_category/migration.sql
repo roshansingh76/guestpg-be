@@ -1,103 +1,103 @@
 /*
   Warnings:
 
-  - You are about to drop the column `guestId` on the `Payment` table. All the data in the column will be lost.
-  - You are about to drop the column `guestId` on the `RentBill` table. All the data in the column will be lost.
-  - You are about to drop the `Guest` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `PGBed` table. If the table is not empty, all the data it contains will be lost.
-  - A unique constraint covering the columns `[tenantId,billMonth,billYear]` on the table `RentBill` will be added. If there are existing duplicate values, this will fail.
-  - Added the required column `categoryId` to the `PGPhoto` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `tenantId` to the `Payment` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `tenantId` to the `RentBill` table without a default value. This is not possible if the table is not empty.
+  - You are about to drop the column `guest_id` on the `payments` table. All the data in the column will be lost.
+  - You are about to drop the column `guest_id` on the `rent_bills` table. All the data in the column will be lost.
+  - You are about to drop the `guests` table. If the table is not empty, all the data it contains will be lost.
+  - You are about to drop the `pg_beds` table. If the table is not empty, all the data it contains will be lost.
+  - A unique constraint covering the columns `[tenant_id,bill_month,bill_year]` on the table `rent_bills` will be added. If these are existing duplicate values, this will fail.
+  - Added the required column `category_id` to the `pg_photos` table without a default value. This is not possible if the table is not empty.
+  - Added the required column `tenant_id` to the `payments` table without a default value. This is not possible if the table is not empty.
+  - Added the required column `tenant_id` to the `rent_bills` table without a default value. This is not possible if the table is not empty.
 
 */
 -- DropForeignKey
-ALTER TABLE "Guest" DROP CONSTRAINT "Guest_bedId_fkey";
+ALTER TABLE "guests" DROP CONSTRAINT "guests_bed_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "Guest" DROP CONSTRAINT "Guest_pgId_fkey";
+ALTER TABLE "guests" DROP CONSTRAINT "guests_pg_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "PGBed" DROP CONSTRAINT "PGBed_pgId_fkey";
+ALTER TABLE "pg_beds" DROP CONSTRAINT "pg_beds_pg_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "PGBed" DROP CONSTRAINT "PGBed_roomId_fkey";
+ALTER TABLE "pg_beds" DROP CONSTRAINT "pg_beds_room_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "Payment" DROP CONSTRAINT "Payment_guestId_fkey";
+ALTER TABLE "payments" DROP CONSTRAINT "payments_guest_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "RentBill" DROP CONSTRAINT "RentBill_guestId_fkey";
+ALTER TABLE "rent_bills" DROP CONSTRAINT "rent_bills_guest_id_fkey";
 
 -- DropIndex
-DROP INDEX "RentBill_guestId_billMonth_billYear_key";
+DROP INDEX "rent_bills_guest_id_bill_month_bill_year_key";
 
 -- AlterTable
-ALTER TABLE "PGPhoto" ADD COLUMN     "categoryId" INTEGER NOT NULL;
+ALTER TABLE "pg_photos" ADD COLUMN     "category_id" INTEGER NOT NULL;
 
 -- AlterTable
-ALTER TABLE "Payment" DROP COLUMN "guestId",
-ADD COLUMN     "tenantId" INTEGER NOT NULL;
+ALTER TABLE "payments" DROP COLUMN "guest_id",
+ADD COLUMN     "tenant_id" INTEGER NOT NULL;
 
 -- AlterTable
-ALTER TABLE "RentBill" DROP COLUMN "guestId",
-ADD COLUMN     "tenantId" INTEGER NOT NULL;
+ALTER TABLE "rent_bills" DROP COLUMN "guest_id",
+ADD COLUMN     "tenant_id" INTEGER NOT NULL;
 
 -- DropTable
-DROP TABLE "Guest";
+DROP TABLE "guests";
 
 -- DropTable
-DROP TABLE "PGBed";
+DROP TABLE "pg_beds";
 
 -- DropEnum
 DROP TYPE "BedStatus";
 
 -- CreateTable
-CREATE TABLE "Tenant" (
+CREATE TABLE "tenants" (
     "id" SERIAL NOT NULL,
-    "pgId" INTEGER NOT NULL,
+    "pg_id" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
     "aadhar" TEXT NOT NULL,
     "address" TEXT,
     "emergency" TEXT,
-    "emergencyPhone" TEXT,
-    "idProofUrl" TEXT,
-    "photoUrl" TEXT,
-    "moveInDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "moveOutDate" TIMESTAMP(3),
+    "emergency_phone" TEXT,
+    "id_proof_url" TEXT,
+    "photo_url" TEXT,
+    "move_in_date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "move_out_date" TIMESTAMP(3),
     "status" TEXT NOT NULL DEFAULT 'active',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "Tenant_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "tenants_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "PGPhotoCategory" (
+CREATE TABLE "pg_photo_categories" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "PGPhotoCategory_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "pg_photo_categories_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "PGPhotoCategory_name_key" ON "PGPhotoCategory"("name");
+CREATE UNIQUE INDEX "pg_photo_categories_name_key" ON "pg_photo_categories"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "RentBill_tenantId_billMonth_billYear_key" ON "RentBill"("tenantId", "billMonth", "billYear");
+CREATE UNIQUE INDEX "rent_bills_tenant_id_bill_month_bill_year_key" ON "rent_bills"("tenant_id", "bill_month", "bill_year");
 
 -- AddForeignKey
-ALTER TABLE "Tenant" ADD CONSTRAINT "Tenant_pgId_fkey" FOREIGN KEY ("pgId") REFERENCES "PG"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "tenants" ADD CONSTRAINT "tenants_pg_id_fkey" FOREIGN KEY ("pg_id") REFERENCES "pgs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "PGPhoto" ADD CONSTRAINT "PGPhoto_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "PGPhotoCategory"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "pg_photos" ADD CONSTRAINT "pg_photos_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "pg_photo_categories"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "RentBill" ADD CONSTRAINT "RentBill_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "rent_bills" ADD CONSTRAINT "rent_bills_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Payment" ADD CONSTRAINT "Payment_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "payments" ADD CONSTRAINT "payments_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;

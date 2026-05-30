@@ -1,4 +1,5 @@
 import { prisma } from '../db/prisma'
+import { logger } from '../utils/logger'
 import * as bcrypt from 'bcryptjs'
 
 const SALT_ROUNDS = 10
@@ -8,7 +9,7 @@ export interface CreateUserInput {
   email: string
   phone: string
   password: string
-  role: 'admin' | 'pg_owner' | 'pg_staff'
+  roleId: number
   pgId?: number
   pgIds?: number[]
   status?: 'active' | 'inactive'
@@ -19,7 +20,7 @@ export interface UpdateUserInput {
   email?: string
   phone?: string
   password?: string
-  role?: 'admin' | 'pg_owner' | 'pg_staff'
+  roleId?: number
   pgId?: number | null
   pgIds?: number[] | null
   status?: 'active' | 'inactive'
@@ -31,53 +32,68 @@ export class UserService {
     // Hash password
     const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS)
 
-    const user = await prisma.user.create({
+    // Create user first without PG relations to avoid passing `pgId` into Prisma create
+    const userBase = await prisma.user.create({
       data: {
         name: data.name,
         email: data.email,
         phone: data.phone,
         passwordHash: hashedPassword,
-        role: data.role,
-        pgId: data.pgId ?? data.pgIds?.[0] ?? null,
+        roleId: data.roleId,
         status: data.status || 'active',
-        userPGs:
-          data.pgIds && data.pgIds.length > 0
-            ? {
-                create: data.pgIds.map((pgId) => ({ pg: { connect: { id: pgId } } })),
-              }
-            : data.pgId
-            ? {
-                create: { pg: { connect: { id: data.pgId } } },
-              }
-            : undefined,
       },
-      include: {
-        pg: true,
-        userPGs: {
-          select: {
-            pgId: true,
-            pg: {
-              select: {
-                id: true,
-                pgName: true,
-                city: true,
-                state: true,
+      include: { userPGs: { select: { pgId: true } }, pg: { select: { id: true, pgName: true } } },
+    })
+
+    let finalUser = userBase as any
+
+    // If pg assignment(s) provided, update the user to set pGId and create userPGs entries
+    if ((data.pgIds && data.pgIds.length > 0) || data.pgId) {
+      const pgIdsToAssign = data.pgIds && data.pgIds.length > 0 ? data.pgIds : data.pgId ? [data.pgId] : []
+      const updateData: any = {}
+      if (pgIdsToAssign.length > 0) updateData.pGId = pgIdsToAssign[0]
+      if (pgIdsToAssign.length > 0) {
+        updateData.userPGs = {
+          create: pgIdsToAssign.map((pgId) => ({ pg: { connect: { id: pgId } } })),
+        }
+      }
+
+      finalUser = await prisma.user.update({
+        where: { id: userBase.id },
+        data: updateData,
+        include: {
+          pg: { select: { id: true, pgName: true } },
+          userPGs: {
+            select: {
+              pgId: true,
+              pg: {
+                select: {
+                  id: true,
+                  pgName: true,
+                  city: { select: { id: true, name: true, state: true } },
+                  state: true,
+                },
               },
             },
           },
         },
-      },
-    })
+      })
+    }
+
+    const user = finalUser
 
     const { passwordHash: _, ...userWithoutPassword } = user as any
     const pgIds = user.userPGs?.map((assignment: any) => assignment.pgId) ?? []
-    return { ...userWithoutPassword, pgIds }
+    const result: any = { ...userWithoutPassword, pgIds }
+    if ((user as any).pGId !== undefined && (user as any).pGId !== null) result.pgId = (user as any).pGId
+    return result
   }
 
   // Get all users with filters and pagination
   static async getAllUsers(
     filters?: {
       role?: string
+      roleId?: number
       status?: string
       pgId?: number
     },
@@ -88,7 +104,8 @@ export class UserService {
     const skip = (page - 1) * limit
 
     const where: any = {}
-    if (filters?.role) where.role = filters.role
+    if (filters?.roleId) where.roleId = filters.roleId
+    else if (filters?.role) where.role = { name: filters.role }
     if (filters?.status) where.status = filters.status
     if (filters?.pgId) where.userPGs = { some: { pgId: filters.pgId } }
 
@@ -105,15 +122,8 @@ export class UserService {
           phone: true,
           role: true,
           status: true,
-          pgId: true,
-          pg: {
-            select: {
-              id: true,
-              pgName: true,
-              city: true,
-              state: true,
-            },
-          },
+          pGId: true,
+          pg: { select: { id: true, pgName: true, city: { select: { id: true, name: true, state: true } }, state: true } },
           userPGs: {
             select: {
               pgId: true,
@@ -121,7 +131,7 @@ export class UserService {
                 select: {
                   id: true,
                   pgName: true,
-                  city: true,
+                  city: { select: { id: true, name: true, state: true } },
                   state: true,
                 },
               },
@@ -136,7 +146,10 @@ export class UserService {
 
     const mappedUsers = users.map((user: any) => {
       const pgIds = user.userPGs?.map((assignment: any) => assignment.pgId) ?? []
-      return { ...user, pgIds }
+      const roleName = user.role?.name ?? user.role
+      const apiUser: any = { ...user, role: roleName, pgIds }
+      if (user.pGId !== undefined && user.pGId !== null) apiUser.pgId = user.pGId
+      return apiUser
     })
 
     return {
@@ -153,36 +166,16 @@ export class UserService {
   static async getUserById(id: number) {
     const user = await prisma.user.findUnique({
       where: { id },
-      select: {
+        select: {
         id: true,
         name: true,
         email: true,
         phone: true,
         role: true,
         status: true,
-        pgId: true,
-        pg: {
-          select: {
-            id: true,
-            pgName: true,
-            city: true,
-            state: true,
-            pgType: true,
-          },
-        },
-        userPGs: {
-          select: {
-            pgId: true,
-            pg: {
-              select: {
-                id: true,
-                pgName: true,
-                city: true,
-                state: true,
-              },
-            },
-          },
-        },
+        pGId: true,
+          pg: { select: { id: true, pgName: true, city: { select: { id: true, name: true, state: true } }, state: true, pgType: true } },
+        userPGs: { select: { pgId: true, pg: { select: { id: true, pgName: true, city: { select: { id: true, name: true, state: true } }, state: true } } } },
         createdAt: true,
         updatedAt: true,
       },
@@ -191,7 +184,10 @@ export class UserService {
     if (!user) return null
 
     const pgIds = user.userPGs?.map((assignment: any) => assignment.pgId) ?? []
-    return { ...user, pgIds }
+    const roleName = (user as any).role?.name ?? (user as any).role
+    const result: any = { ...user, role: roleName, pgIds }
+    if ((user as any).pGId !== undefined && (user as any).pGId !== null) result.pgId = (user as any).pGId
+    return result
   }
 
   // Update user
@@ -201,7 +197,7 @@ export class UserService {
     if (data.name) updateData.name = data.name
     if (data.email) updateData.email = data.email
     if (data.phone) updateData.phone = data.phone
-    if (data.role) updateData.role = data.role
+    if (data.roleId !== undefined) updateData.roleId = data.roleId
     if (data.status) updateData.status = data.status
     if (data.pgId !== undefined) updateData.pgId = data.pgId
     if (data.pgIds !== undefined) {
@@ -226,35 +222,18 @@ export class UserService {
         phone: true,
         role: true,
         status: true,
-        pgId: true,
-        pg: {
-          select: {
-            id: true,
-            pgName: true,
-            city: true,
-            state: true,
-          },
-        },
-        userPGs: {
-          select: {
-            pgId: true,
-            pg: {
-              select: {
-                id: true,
-                pgName: true,
-                city: true,
-                state: true,
-              },
-            },
-          },
-        },
+        pGId: true,
+        pg: { select: { id: true, pgName: true, city: { select: { id: true, name: true, state: true } }, state: true, pgType: true } },
+        userPGs: { select: { pgId: true, pg: { select: { id: true, pgName: true, city: { select: { id: true, name: true, state: true } }, state: true } } } },
         createdAt: true,
         updatedAt: true,
       },
     })
 
     const pgIds = user.userPGs?.map((assignment: any) => assignment.pgId) ?? []
-    return { ...user, pgIds }
+    const result: any = { ...user, pgIds }
+    if ((user as any).pGId !== undefined && (user as any).pGId !== null) result.pgId = (user as any).pGId
+    return result
   }
 
   // Delete user
@@ -279,6 +258,7 @@ export class UserService {
     const user = await prisma.user.findUnique({
       where: { email },
       include: {
+        role: { select: { id: true, name: true } },
         userPGs: {
           select: {
             pgId: true,
@@ -302,9 +282,10 @@ export class UserService {
       return null
     }
 
-    const { passwordHash: _, userPGs, ...userWithoutPassword } = user as any
+    const { passwordHash: _, userPGs, role, ...userWithoutPassword } = user as any
     const pgIds = userPGs?.map((assignment: any) => assignment.pgId) ?? []
-    return { ...userWithoutPassword, pgIds }
+    const roleName = role?.name
+    return { ...userWithoutPassword, role: roleName, pgIds }
   }
 
   // Get all available PGs for assignment
@@ -314,10 +295,10 @@ export class UserService {
       select: {
         id: true,
         pgName: true,
-        city: true,
+        city: { select: { id: true, name: true, state: true } },
         state: true,
         pgType: true,
-        area: true,
+        area: { select: { id: true, name: true } },
         ownerName: true,
       },
       orderBy: { pgName: 'asc' },
@@ -325,18 +306,19 @@ export class UserService {
   }
 
   // Get user count by role
-  static async getUserCountByRole(role: string) {
-    return prisma.user.count({
-      where: { role: role as any },
-    })
+  static async getUserCountByRole(role: string | number) {
+    if (!isNaN(Number(role))) {
+      return prisma.user.count({ where: { roleId: Number(role) } })
+    }
+    return prisma.user.count({ where: { role: { name: String(role) } } })
   }
 
   // Get user statistics
   static async getUserStatistics() {
     const total = await prisma.user.count()
-    const admins = await prisma.user.count({ where: { role: 'admin' } })
-    const pgOwners = await prisma.user.count({ where: { role: 'pg_owner' } })
-    const pgStaff = await prisma.user.count({ where: { role: 'pg_staff' } })
+    const admins = await prisma.user.count({ where: { role: { name: 'admin' } } })
+    const pgOwners = await prisma.user.count({ where: { role: { name: 'pg_owner' } } })
+    const pgStaff = await prisma.user.count({ where: { role: { name: 'pg_staff' } } })
     const active = await prisma.user.count({ where: { status: 'active' } })
     const inactive = total - active
 

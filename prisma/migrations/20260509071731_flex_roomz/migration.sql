@@ -1,19 +1,3 @@
--- CreateEnum (idempotent)
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE LOWER(typname) = 'role') THEN
-        CREATE TYPE "Role" AS ENUM ('admin', 'pg_owner', 'pg_staff');
-    ELSE
-        -- Ensure missing enum value 'super_admin' exists (safe to run multiple times)
-        IF NOT EXISTS (
-            SELECT 1 FROM pg_enum e JOIN pg_type t ON e.enumtypid = t.oid
-            WHERE LOWER(t.typname) = 'role' AND e.enumlabel = 'super_admin'
-        ) THEN
-            ALTER TYPE "Role" ADD VALUE 'super_admin';
-        END IF;
-    END IF;
-END$$;
-
 -- CreateEnum
 CREATE TYPE "UserStatus" AS ENUM ('active', 'inactive');
 
@@ -30,109 +14,111 @@ CREATE TYPE "UserRole" AS ENUM ('Owner', 'Manager');
 CREATE TYPE "PGStatus" AS ENUM ('active', 'inactive');
 
 -- CreateTable
-CREATE TABLE "User" (
+CREATE TABLE "users" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
-    "passwordHash" TEXT NOT NULL,
-    "role" "Role" NOT NULL DEFAULT 'pg_owner',
+    "password_hash" TEXT NOT NULL,
+    "role_id" INTEGER NOT NULL,
     "status" "UserStatus" NOT NULL DEFAULT 'active',
-    "pgId" INTEGER,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "pg_id" INTEGER,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Guest" (
+CREATE TABLE "guests" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
     "aadhar" TEXT NOT NULL,
     "address" TEXT,
     "emergency" TEXT,
-    "emergencyPhone" TEXT,
-    "joiningDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "emergency_phone" TEXT,
+    "joining_date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "status" TEXT NOT NULL DEFAULT 'active',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "Guest_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "guests_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Room" (
+CREATE TABLE "rooms" (
     "id" SERIAL NOT NULL,
     "number" TEXT NOT NULL,
     "type" TEXT NOT NULL,
-    "totalBeds" INTEGER NOT NULL,
-    "availableBeds" INTEGER NOT NULL,
+    "total_beds" INTEGER NOT NULL,
+    "available_beds" INTEGER NOT NULL,
     "rent" INTEGER NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "Room_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "rooms_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Bed" (
+CREATE TABLE "beds" (
     "id" SERIAL NOT NULL,
     "number" TEXT NOT NULL,
     "room" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'vacant',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "Bed_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "beds_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "PG" (
+CREATE TABLE "pgs" (
     "id" SERIAL NOT NULL,
-    "pgName" TEXT NOT NULL,
-    "ownerName" TEXT NOT NULL,
-    "ownerPhone" TEXT NOT NULL,
-    "ownerEmail" TEXT NOT NULL,
-    "addressLine1" TEXT NOT NULL,
-    "addressLine2" TEXT,
-    "nearbyMark" TEXT,
+    "pg_name" TEXT NOT NULL,
+    "owner_name" TEXT NOT NULL,
+    "owner_phone" TEXT NOT NULL,
+    "owner_email" TEXT NOT NULL,
+    "address_line1" TEXT NOT NULL,
+    "address_line2" TEXT,
+    "nearby_mark" TEXT,
     "area" TEXT NOT NULL,
     "city" TEXT NOT NULL,
     "state" TEXT NOT NULL,
     "latitude" DOUBLE PRECISION NOT NULL,
     "longitude" DOUBLE PRECISION NOT NULL,
-    "pgType" "PGType" NOT NULL,
-    "numberOfRooms" INTEGER NOT NULL,
-    "isFoodAvailable" BOOLEAN NOT NULL DEFAULT false,
+    "pg_type" "PGType" NOT NULL,
+    "number_of_rooms" INTEGER NOT NULL,
+    "is_food_available" BOOLEAN NOT NULL DEFAULT false,
     "status" "PGStatus" NOT NULL DEFAULT 'active',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "area_id" INTEGER,
+    "city_id" INTEGER,
 
-    CONSTRAINT "PG_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "pgs_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "PGRoom" (
+CREATE TABLE "pg_rooms" (
     "id" SERIAL NOT NULL,
-    "pgId" INTEGER NOT NULL,
-    "roomType" TEXT NOT NULL,
-    "roomNumber" TEXT NOT NULL,
-    "totalBeds" INTEGER NOT NULL,
-    "availableBeds" INTEGER NOT NULL,
-    "pricePerBed" INTEGER NOT NULL,
-    "acType" "RoomType" NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "pg_id" INTEGER NOT NULL,
+    "room_type" TEXT NOT NULL,
+    "room_number" TEXT NOT NULL,
+    "total_beds" INTEGER NOT NULL,
+    "available_beds" INTEGER NOT NULL,
+    "price_per_bed" INTEGER NOT NULL,
+    "ac_type" "RoomType" NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "PGRoom_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "pg_rooms_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "PGStaff" (
+CREATE TABLE "pg_staff" (
     "id" SERIAL NOT NULL,
-    "pgId" INTEGER NOT NULL,
+    "pg_id" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
@@ -140,49 +126,49 @@ CREATE TABLE "PGStaff" (
     "username" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "status" "UserStatus" NOT NULL DEFAULT 'active',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "PGStaff_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "pg_staff_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "PGPhoto" (
+CREATE TABLE "pg_photos" (
     "id" SERIAL NOT NULL,
-    "pgId" INTEGER NOT NULL,
-    "photoUrl" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "pg_id" INTEGER NOT NULL,
+    "photo_url" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "PGPhoto_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "pg_photos_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Room_number_key" ON "Room"("number");
+CREATE UNIQUE INDEX "rooms_number_key" ON "rooms"("number");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Bed_number_key" ON "Bed"("number");
+CREATE UNIQUE INDEX "beds_number_key" ON "beds"("number");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "PG_ownerEmail_key" ON "PG"("ownerEmail");
+CREATE UNIQUE INDEX "pgs_owner_email_key" ON "pgs"("owner_email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "PGRoom_pgId_roomNumber_key" ON "PGRoom"("pgId", "roomNumber");
+CREATE UNIQUE INDEX "pg_rooms_pg_id_room_number_key" ON "pg_rooms"("pg_id", "room_number");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "PGStaff_username_key" ON "PGStaff"("username");
+CREATE UNIQUE INDEX "pg_staff_username_key" ON "pg_staff"("username");
 
 -- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_pgId_fkey" FOREIGN KEY ("pgId") REFERENCES "PG"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "users" ADD CONSTRAINT "users_pg_id_fkey" FOREIGN KEY ("pg_id") REFERENCES "pgs"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "PGRoom" ADD CONSTRAINT "PGRoom_pgId_fkey" FOREIGN KEY ("pgId") REFERENCES "PG"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "pg_rooms" ADD CONSTRAINT "pg_rooms_pg_id_fkey" FOREIGN KEY ("pg_id") REFERENCES "pgs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "PGStaff" ADD CONSTRAINT "PGStaff_pgId_fkey" FOREIGN KEY ("pgId") REFERENCES "PG"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "pg_staff" ADD CONSTRAINT "pg_staff_pg_id_fkey" FOREIGN KEY ("pg_id") REFERENCES "pgs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "PGPhoto" ADD CONSTRAINT "PGPhoto_pgId_fkey" FOREIGN KEY ("pgId") REFERENCES "PG"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "pg_photos" ADD CONSTRAINT "pg_photos_pg_id_fkey" FOREIGN KEY ("pg_id") REFERENCES "pgs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
