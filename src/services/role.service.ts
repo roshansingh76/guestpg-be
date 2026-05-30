@@ -68,7 +68,7 @@ export class RoleService {
         displayName: data.displayName.trim(),
         description: data.description?.trim(),
         permissions: data.permissions,
-        status: data.status ?? 'active',
+        isActive: data.status === 'inactive' ? 0 : 1,
         isSystem: false,
       },
     })
@@ -217,7 +217,7 @@ export class RoleService {
         create: {
           ...role,
           permissions: role.permissions as string[],
-          status: 'active',
+          isActive: 1,
         },
       })
     }
@@ -230,8 +230,8 @@ export class RoleService {
   static async getRoleStats() {
     const [total, active, inactive, system, custom] = await Promise.all([
       prisma.role.count(),
-      prisma.role.count({ where: { status: 'active' } }),
-      prisma.role.count({ where: { status: 'inactive' } }),
+      prisma.role.count({ where: { isActive: 1 } }),
+      prisma.role.count({ where: { isActive: 0 } }),
       prisma.role.count({ where: { isSystem: true } }),
       prisma.role.count({ where: { isSystem: false } }),
     ])

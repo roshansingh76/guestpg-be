@@ -30,11 +30,8 @@ function seedUsers() {
                 phone: user.phone,
                 passwordHash: user.passwordHash,
                 role: { connect: { id: roleId } },
-                status: user.status,
+                isActive: user.isActive,
             };
-            if (user.pgId !== null && user.pgId !== undefined) {
-                userData.pg = { connect: { id: user.pgId } };
-            }
             yield prismaClient_1.prisma.user.upsert({
                 where: { email: user.email },
                 update: userData,

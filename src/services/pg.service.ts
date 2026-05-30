@@ -174,7 +174,7 @@ export class PGService {
     })
     const totalRooms = await prisma.pGRoom.count()
     const totalUsers = await prisma.user.count({
-      where: { role: { in: ['pg_owner', 'pg_staff'] } },
+      where: { role: { name: { in: ['pg_owner', 'pg_staff'] } } },
     })
 
     return {

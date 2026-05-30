@@ -92,7 +92,7 @@ export class AreaService {
   // Get areas by city ID
   static async getAreasByCity(cityId: number) {
     return prisma.area.findMany({
-      where: { cityId, status: 'active' },
+      where: { cityId, isActive: 1 },
       orderBy: { name: 'asc' },
     })
   }

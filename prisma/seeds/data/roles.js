@@ -14,7 +14,7 @@ exports.roles = [
             'manage_expenses',
             'manage_settings'
         ],
-        status: 'active',
+        isActive: 1,
         isSystem: true
     },
     {
@@ -27,7 +27,7 @@ exports.roles = [
             'manage_billing',
             'manage_expenses'
         ],
-        status: 'active',
+        isActive: 1,
         isSystem: true
     },
     {
@@ -39,7 +39,7 @@ exports.roles = [
             'manage_billing',
             'manage_expenses'
         ],
-        status: 'active',
+        isActive: 1,
         isSystem: true
     }
 ];

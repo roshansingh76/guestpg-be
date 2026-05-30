@@ -9,30 +9,27 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.seedRoles = seedRoles;
+exports.seedCities = seedCities;
 const prismaClient_1 = require("./prismaClient");
-const roles_1 = require("./data/roles");
-function seedRoles() {
+const cities_1 = require("./data/cities");
+function seedCities() {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log('Seeding role definitions...');
-        for (const role of roles_1.roles) {
-            yield prismaClient_1.prisma.role.upsert({
-                where: { name: role.name },
+        console.log('Seeding cities...');
+        for (const city of cities_1.cities) {
+            yield prismaClient_1.prisma.city.upsert({
+                where: { name: city.name },
                 update: {
-                    displayName: role.displayName,
-                    description: role.description,
-                    permissions: role.permissions,
-                    isActive: role.isActive,
-                    isSystem: role.isSystem
+                    state: city.state,
+                    isActive: city.isActive
                 },
-                create: role
+                create: city
             });
         }
-        console.log('Role definitions seeded.');
+        console.log('Cities seeded.');
     });
 }
 if (require.main === module) {
-    seedRoles()
+    seedCities()
         .then(() => prismaClient_1.prisma.$disconnect())
         .catch((error) => __awaiter(void 0, void 0, void 0, function* () {
         console.error(error);

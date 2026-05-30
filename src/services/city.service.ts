@@ -90,10 +90,10 @@ export class CityService {
   // Get all cities with areas
   static async getCitiesWithAreas() {
     return prisma.city.findMany({
-      where: { status: 'active' },
+      where: { isActive: 1 },
       include: {
         areas: {
-          where: { status: 'active' },
+          where: { isActive: 1 },
           orderBy: { name: 'asc' },
         },
       },

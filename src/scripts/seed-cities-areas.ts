@@ -11,7 +11,7 @@ const seedCitiesAndAreas = async () => {
       create: {
         name: 'Delhi',
         state: 'Delhi',
-        status: 'active',
+        isActive: 1,
       },
     })
 
@@ -40,7 +40,7 @@ const seedCitiesAndAreas = async () => {
         create: {
           name: areaName,
           cityId: delhi.id,
-          status: 'active',
+          isActive: 1,
         },
       })
     }
@@ -54,7 +54,7 @@ const seedCitiesAndAreas = async () => {
       create: {
         name: 'Gurgaon',
         state: 'Haryana',
-        status: 'active',
+        isActive: 1,
       },
     })
 
@@ -88,7 +88,7 @@ const seedCitiesAndAreas = async () => {
         create: {
           name: areaName,
           cityId: gurgaon.id,
-          status: 'active',
+          isActive: 1,
         },
       })
     }
@@ -102,7 +102,7 @@ const seedCitiesAndAreas = async () => {
       create: {
         name: 'Noida',
         state: 'Uttar Pradesh',
-        status: 'active',
+        isActive: 1,
       },
     })
 
@@ -140,7 +140,7 @@ const seedCitiesAndAreas = async () => {
         create: {
           name: areaName,
           cityId: noida.id,
-          status: 'active',
+          isActive: 1,
         },
       })
     }

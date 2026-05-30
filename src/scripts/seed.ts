@@ -10,7 +10,7 @@ async function main() {
     where: { email: adminEmail },
     update: {
       name: 'Admin User',
-      role: 'super_admin',
+      role: { connect: { name: 'super_admin' } },
       phone: '0000000000',
       passwordHash: bcrypt.hashSync(adminPassword, 10),
     },
@@ -18,7 +18,7 @@ async function main() {
       name: 'Admin User',
       email: adminEmail,
       phone: '0000000000',
-      role: 'super_admin',
+      role: { connect: { name: 'super_admin' } },
       passwordHash: bcrypt.hashSync(adminPassword, 10),
     },
   })
@@ -33,17 +33,17 @@ async function main() {
       where: { email: pgOwnerEmail },
       update: {
         name: 'PG Owner',
-        role: 'pg_owner',
+        role: { connect: { name: 'pg_owner' } },
         phone: '1111111111',
-        pgId: existingPG.id,
+        pg: { connect: { id: existingPG.id } },
         passwordHash: bcrypt.hashSync(pgOwnerPassword, 10),
       },
       create: {
         name: 'PG Owner',
         email: pgOwnerEmail,
         phone: '1111111111',
-        role: 'pg_owner',
-        pgId: existingPG.id,
+        role: { connect: { name: 'pg_owner' } },
+        pg: { connect: { id: existingPG.id } },
         passwordHash: bcrypt.hashSync(pgOwnerPassword, 10),
       },
     })

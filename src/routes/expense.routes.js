@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const expense_controller_1 = require("../controllers/expense.controller");
+const router = (0, express_1.Router)({ mergeParams: true });
+router.get('/summary', expense_controller_1.getExpenseSummary);
+router.get('/', expense_controller_1.getExpenses);
+router.get('/:expenseId', expense_controller_1.getExpenseById);
+router.post('/', expense_controller_1.createExpense);
+router.put('/:expenseId', expense_controller_1.updateExpense);
+router.delete('/:expenseId', expense_controller_1.deleteExpense);
+exports.default = router;
