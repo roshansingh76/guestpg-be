@@ -30,8 +30,8 @@ class AreaService {
             const limit = (pagination === null || pagination === void 0 ? void 0 : pagination.limit) || 10;
             const skip = (page - 1) * limit;
             const where = {};
-            if (filters === null || filters === void 0 ? void 0 : filters.status)
-                where.status = filters.status;
+            if ((filters === null || filters === void 0 ? void 0 : filters.isActive) !== undefined)
+                where.isActive = filters.isActive;
             if (filters === null || filters === void 0 ? void 0 : filters.cityId)
                 where.cityId = filters.cityId;
             const [areas, total] = yield Promise.all([
@@ -91,7 +91,7 @@ class AreaService {
     static getAreasByCity(cityId) {
         return __awaiter(this, void 0, void 0, function* () {
             return prisma_1.prisma.area.findMany({
-                where: { cityId, status: 'active' },
+                where: { cityId, isActive: 1 },
                 orderBy: { name: 'asc' },
             });
         });

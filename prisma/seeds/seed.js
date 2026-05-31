@@ -14,6 +14,8 @@ const _01_roles_seed_1 = require("./01_roles.seed");
 const _02_users_seed_1 = require("./02_users.seed");
 const _03_cities_seed_1 = require("./03_cities.seed");
 const _04_areas_seed_1 = require("./04_areas.seed");
+const _05_amenities_seed_1 = require("./05_amenities.seed");
+const _06_photo_categories_seed_1 = require("./06_photo_categories.seed");
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -22,6 +24,8 @@ function main() {
             yield (0, _02_users_seed_1.seedUsers)();
             yield (0, _03_cities_seed_1.seedCities)();
             yield (0, _04_areas_seed_1.seedAreas)();
+            yield (0, _05_amenities_seed_1.seedAmenities)();
+            yield (0, _06_photo_categories_seed_1.seedPhotoCategories)();
             console.log('Prisma seed runner complete.');
         }
         finally {

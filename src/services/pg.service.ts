@@ -10,13 +10,16 @@ export interface CreatePGInput {
   addressLine2?: string
   nearbyMark?: string
   areaId?: number
+  areaOther?: string
   cityId?: number
+  cityOther?: string
   state: string
   latitude: number
   longitude: number
   pgType: PGType
   numberOfRooms: number
   isFoodAvailable?: boolean
+  amenityIds?: number[]
 }
 
 export interface UpdatePGInput {
@@ -28,7 +31,9 @@ export interface UpdatePGInput {
   addressLine2?: string
   nearbyMark?: string
   areaId?: number
+  areaOther?: string
   cityId?: number
+  cityOther?: string
   state?: string
   latitude?: number
   longitude?: number
@@ -41,13 +46,30 @@ export interface UpdatePGInput {
 export class PGService {
   // Create new PG
   static async createPG(data: CreatePGInput) {
+    const { amenityIds, ...payload } = data
+
     // Remove undefined values
     const cleanData = Object.fromEntries(
-      Object.entries(data).filter(([, value]) => value !== undefined)
-    ) as CreatePGInput
+      Object.entries(payload).filter(([, value]) => value !== undefined)
+    ) as unknown as CreatePGInput
+
+    const pgAmenityCreate = amenityIds?.length
+      ? {
+          pgAmenities: {
+            create: amenityIds.map((amenityId) => ({
+              amenity: {
+                connect: { id: amenityId },
+              },
+            })),
+          },
+        }
+      : {}
 
     return prisma.pG.create({
-      data: cleanData,
+      data: {
+        ...cleanData,
+        ...pgAmenityCreate,
+      },
       include: {
         rooms: true,
         photos: true,
@@ -57,7 +79,12 @@ export class PGService {
         area: {
           select: { id: true, name: true },
         },
-      },
+        pgAmenities: {
+          include: {
+            amenity: true,
+          },
+        },
+      } as any,
     })
   }
 
@@ -104,7 +131,8 @@ export class PGService {
           photos: true,
           city: { select: { id: true, name: true, state: true } },
           area: { select: { id: true, name: true } },
-        },
+          pgAmenities: { include: { amenity: true } },
+        } as any,
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -131,7 +159,8 @@ export class PGService {
           photos: true,
           city: { select: { id: true, name: true, state: true } },
           area: { select: { id: true, name: true } },
-        },
+          pgAmenities: { include: { amenity: true } },
+        } as any,
     })
   }
 
@@ -145,7 +174,8 @@ export class PGService {
           photos: true,
           city: { select: { id: true, name: true, state: true } },
           area: { select: { id: true, name: true } },
-        },
+          pgAmenities: { include: { amenity: true } },
+        } as any,
     })
   }
 

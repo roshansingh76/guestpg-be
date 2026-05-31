@@ -3,14 +3,14 @@ import { ExpenseCategory } from '@prisma/client'
 
 export interface CreateExpenseInput {
   pgId: number
-  category: ExpenseCategory
+  categoryId: number
   amount: number
   description?: string
   date: Date
 }
 
 export interface UpdateExpenseInput {
-  category?: ExpenseCategory
+  categoryId?: number
   amount?: number
   description?: string
   date?: Date
@@ -62,7 +62,7 @@ export class ExpenseService {
 
   static async updateExpense(pgId: number, expenseId: number, data: UpdateExpenseInput) {
     const updateData: any = {}
-    if (data.category) updateData.category = data.category
+    if (data.categoryId !== undefined) updateData.categoryId = data.categoryId
     if (data.amount !== undefined) updateData.amount = data.amount
     if (data.description) updateData.description = data.description
     if (data.date) updateData.date = data.date

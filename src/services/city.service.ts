@@ -8,7 +8,7 @@ export interface CreateCityInput {
 export interface UpdateCityInput {
   name?: string
   state?: string
-  status?: string
+  isActive?: number
 }
 
 export class CityService {
@@ -25,7 +25,7 @@ export class CityService {
   // Get all cities with filters and pagination
   static async getAllCities(
     filters?: {
-      status?: string
+      isActive?: number
     },
     pagination?: { page?: number; limit?: number }
   ) {
@@ -34,7 +34,7 @@ export class CityService {
     const skip = (page - 1) * limit
 
     const where: any = {}
-    if (filters?.status) where.status = filters.status
+    if (filters?.isActive !== undefined) where.isActive = filters.isActive
 
     const [cities, total] = await Promise.all([
       prisma.city.findMany({
@@ -87,17 +87,34 @@ export class CityService {
     })
   }
 
-  // Get all cities with areas
-  static async getCitiesWithAreas() {
-    return prisma.city.findMany({
-      where: { isActive: 1 },
-      include: {
-        areas: {
-          where: { isActive: 1 },
-          orderBy: { name: 'asc' },
+  // Get all cities with areas and pagination
+  static async getCitiesWithAreas(pagination?: { skip?: number; limit?: number }) {
+    const skip = pagination?.skip || 0
+    const limit = pagination?.limit || 100
+
+    const [cities, total] = await Promise.all([
+      prisma.city.findMany({
+        where: { isActive: 1 },
+        include: {
+          areas: {
+            where: { isActive: 1 },
+            orderBy: { name: 'asc' },
+          },
         },
+        orderBy: { name: 'asc' },
+        skip,
+        take: limit,
+      }),
+      prisma.city.count({ where: { isActive: 1 } }),
+    ])
+
+    return {
+      data: cities,
+      pagination: {
+        skip,
+        limit,
+        totalCount: total,
       },
-      orderBy: { name: 'asc' },
-    })
+    }
   }
 }

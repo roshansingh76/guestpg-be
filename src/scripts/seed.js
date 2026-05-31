@@ -60,12 +60,12 @@ function main() {
             });
         }
         const categories = [
-            { name: 'Exterior', description: 'Photos of the PG exterior and street view' },
-            { name: 'Interior', description: 'Photos of rooms, common areas, and interiors' },
-            { name: 'Amenities', description: 'Photos of facilities, kitchen, and amenities' },
+            { name: 'Banner Image', description: 'Primary banner image for the PG listing' },
+            { name: 'Interior Photos', description: 'Interior room and common area photos' },
+            { name: 'Exterior Photos', description: 'Exterior property and street view photos' },
         ];
         for (const category of categories) {
-            yield prisma_1.prisma.pGPhotoCategory.upsert({
+            yield prisma_1.prisma.photoCategory.upsert({
                 where: { name: category.name },
                 update: { description: category.description },
                 create: category,

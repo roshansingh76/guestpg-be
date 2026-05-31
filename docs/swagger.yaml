@@ -6,6 +6,33 @@ info:
 servers:
   - url: http://localhost:3000/api
     description: Local development server
+tags:
+  - name: Auth
+    description: Authentication endpoints
+  - name: Master Data
+    description: Master data list endpoints (Amenities, Photo Categories, Expense Categories)
+  - name: Areas
+    description: Area master data management endpoints
+  - name: Cities
+    description: City master data management endpoints
+  - name: PGs
+    description: Pay guest listing and management endpoints
+  - name: Rooms
+    description: Room management endpoints for PGs
+  - name: PG Photos
+    description: Photo management endpoints for PG listings
+  - name: Beds
+    description: Bed management endpoints
+  - name: Expenses
+    description: Expense tracking endpoints
+  - name: Tenants
+    description: Tenant management endpoints
+  - name: Bills
+    description: Billing endpoints
+  - name: Roles
+    description: Role and permission management endpoints
+  - name: Users
+    description: User management endpoints
 paths:
   /health:
     get:
@@ -17,6 +44,78 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
+
+  /master/amenities:
+    get:
+      tags:
+        - Master Data
+      summary: Get all amenities list
+      description: Retrieve all available amenities for PG listings
+      responses:
+        '200':
+          description: List of amenities
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Amenity'
+                  error:
+                    type: string
+                    nullable: true
+
+  /master/photo-categories:
+    get:
+      tags:
+        - Master Data
+      summary: Get all photo categories list
+      description: Retrieve all available categories for PG photos
+      responses:
+        '200':
+          description: List of photo categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PhotoCategory'
+                  error:
+                    type: string
+                    nullable: true
+
+  /master/expense-categories:
+    get:
+      tags:
+        - Master Data
+      summary: Get all expense categories list
+      description: Retrieve all available expense categories (Rent, Salary, Electricity, Water, etc.)
+      responses:
+        '200':
+          description: List of expense categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ExpenseCategory'
+                  error:
+                    type: string
+                    nullable: true
 
   /auth/login:
     post:
@@ -88,8 +187,376 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /cities:
+    get:
+      tags:
+        - Cities
+      summary: List all cities
+      description: Retrieve all cities from the master data
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: skip
+          schema:
+            type: integer
+            default: 0
+          description: Number of cities to skip
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Maximum number of cities to return
+      responses:
+        '200':
+          description: List of cities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/City'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Cities
+      summary: Create a new city
+      description: Add a new city to the master data
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CityCreateRequest'
+      responses:
+        '201':
+          description: City created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/City'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /cities/{cityId}:
+    get:
+      tags:
+        - Cities
+      summary: Get city by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cityId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: City details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/City'
+        '404':
+          description: City not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      tags:
+        - Cities
+      summary: Update a city
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cityId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CityUpdateRequest'
+      responses:
+        '200':
+          description: City updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/City'
+        '404':
+          description: City not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    delete:
+      tags:
+        - Cities
+      summary: Delete a city
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cityId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: City deleted successfully
+        '404':
+          description: City not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /cities/with-areas:
+    get:
+      tags:
+        - Cities
+      summary: Get all cities with their areas
+      description: Retrieve all cities along with their associated areas, with pagination support
+      parameters:
+        - in: query
+          name: skip
+          schema:
+            type: integer
+            default: 0
+          description: Number of cities to skip
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 100
+          description: Maximum number of cities to return
+      responses:
+        '200':
+          description: Cities with areas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CityWithAreas'
+                  pagination:
+                    type: object
+                    properties:
+                      skip:
+                        type: integer
+                      limit:
+                        type: integer
+                      totalCount:
+                        type: integer
+                  error:
+                    type: string
+                    nullable: true
+
+  /areas:
+    get:
+      tags:
+        - Areas
+      summary: List all areas
+      description: Retrieve all areas from the master data
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: skip
+          schema:
+            type: integer
+            default: 0
+          description: Number of areas to skip
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Maximum number of areas to return
+      responses:
+        '200':
+          description: List of areas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Area'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Areas
+      summary: Create a new area
+      description: Add a new area to the master data
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AreaCreateRequest'
+      responses:
+        '201':
+          description: Area created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Area'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /areas/{areaId}:
+    get:
+      tags:
+        - Areas
+      summary: Get area by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: areaId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Area details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Area'
+        '404':
+          description: Area not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      tags:
+        - Areas
+      summary: Update an area
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: areaId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AreaUpdateRequest'
+      responses:
+        '200':
+          description: Area updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Area'
+        '404':
+          description: Area not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    delete:
+      tags:
+        - Areas
+      summary: Delete an area
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: areaId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Area deleted successfully
+        '404':
+          description: Area not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /areas/city/{cityId}:
+    get:
+      tags:
+        - Areas
+      summary: Get areas by city
+      description: Retrieve all areas that belong to a specific city
+      parameters:
+        - name: cityId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of areas for the city
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Area'
+        '404':
+          description: City not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /pgs:
     post:
+      tags:
+        - PGs
       summary: Create a new PG
       requestBody:
         required: true
@@ -105,6 +572,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/PG'
     get:
+      tags:
+        - PGs
       summary: List all PGs
       responses:
         '200':
@@ -118,6 +587,8 @@ paths:
 
   /pgs/{id}:
     get:
+      tags:
+        - PGs
       summary: Get PG by ID
       parameters:
         - $ref: '#/components/parameters/PGId'
@@ -129,6 +600,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/PG'
     put:
+      tags:
+        - PGs
       summary: Update PG
       parameters:
         - $ref: '#/components/parameters/PGId'
@@ -146,6 +619,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/PG'
     delete:
+      tags:
+        - PGs
       summary: Delete PG
       parameters:
         - $ref: '#/components/parameters/PGId'
@@ -155,6 +630,8 @@ paths:
 
   /pgs/{id}/status:
     patch:
+      tags:
+        - PGs
       summary: Change PG status
       parameters:
         - $ref: '#/components/parameters/PGId'
@@ -183,6 +660,8 @@ paths:
   /pgs/{pgId}/rooms:
     post:
       summary: Create a room for a PG
+      tags:
+        - Rooms
       parameters:
         - $ref: '#/components/parameters/PGId'
       requestBody:
@@ -191,6 +670,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PGRoomCreateRequest'
+            example:
+              roomType: Standard
+              roomNumber: "101"
+              totalBeds: 4
+              availableBeds: 4
+              pricePerBed: 5000
+              acType: AC
       responses:
         '201':
           description: Room created
@@ -200,8 +686,12 @@ paths:
                 $ref: '#/components/schemas/PGRoom'
     get:
       summary: Get all rooms for a PG
+      tags:
+        - Rooms
       parameters:
         - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/Skip'
+        - $ref: '#/components/parameters/Limit'
       responses:
         '200':
           description: Rooms list
@@ -215,6 +705,8 @@ paths:
   /pgs/{pgId}/rooms/{roomId}:
     get:
       summary: Get room by ID
+      tags:
+        - Rooms
       parameters:
         - $ref: '#/components/parameters/PGId'
         - $ref: '#/components/parameters/RoomId'
@@ -227,6 +719,8 @@ paths:
                 $ref: '#/components/schemas/PGRoom'
     put:
       summary: Update room
+      tags:
+        - Rooms
       parameters:
         - $ref: '#/components/parameters/PGId'
         - $ref: '#/components/parameters/RoomId'
@@ -236,6 +730,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PGRoomUpdateRequest'
+            example:
+              roomType: Deluxe
+              roomNumber: "101A"
+              totalBeds: 5
+              availableBeds: 3
+              pricePerBed: 5500
+              acType: AC
       responses:
         '200':
           description: Room updated
@@ -245,6 +746,8 @@ paths:
                 $ref: '#/components/schemas/PGRoom'
     delete:
       summary: Delete room
+      tags:
+        - Rooms
       parameters:
         - $ref: '#/components/parameters/PGId'
         - $ref: '#/components/parameters/RoomId'
@@ -254,6 +757,8 @@ paths:
 
   /pgs/{pgId}/photos:
     post:
+      tags:
+        - PG Photos
       summary: Add a photo to a PG
       parameters:
         - $ref: '#/components/parameters/PGId'
@@ -276,6 +781,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/PGPhoto'
     get:
+      tags:
+        - PG Photos
       summary: List all photos for a PG
       parameters:
         - $ref: '#/components/parameters/PGId'
@@ -291,6 +798,8 @@ paths:
 
   /pgs/{pgId}/photos/{photoId}:
     delete:
+      tags:
+        - PG Photos
       summary: Delete a PG photo
       parameters:
         - $ref: '#/components/parameters/PGId'
@@ -935,6 +1444,24 @@ components:
       required: true
       schema:
         type: integer
+    Skip:
+      name: skip
+      in: query
+      required: false
+      schema:
+        type: integer
+        default: 0
+        example: 0
+      description: Number of records to skip for pagination
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        default: 10
+        example: 10
+      description: Maximum number of records to return
     BedId:
       name: bedId
       in: path
@@ -1085,10 +1612,22 @@ components:
         nearbyMark:
           type: string
           nullable: true
-        area:
+        areaId:
+          type: integer
+          nullable: true
+          description: Reference ID for the selected area
+        areaOther:
           type: string
-        city:
+          nullable: true
+          description: Free-text area name when area is custom
+        cityId:
+          type: integer
+          nullable: true
+          description: Reference ID for the selected city
+        cityOther:
           type: string
+          nullable: true
+          description: Free-text city name when city is custom
         state:
           type: string
         latitude:
@@ -1121,51 +1660,103 @@ components:
       properties:
         pgName:
           type: string
+          description: Name of the PG
         ownerName:
           type: string
+          description: Full name of the PG owner
         ownerPhone:
           type: string
+          description: Contact phone number of the owner
         ownerEmail:
           type: string
+          format: email
+          description: Email address of the owner
         addressLine1:
           type: string
+          description: Primary address line
         addressLine2:
           type: string
+          nullable: true
+          description: Secondary address line (optional)
         nearbyMark:
           type: string
-        area:
+          nullable: true
+          description: Nearby landmark for easy identification (optional)
+        areaId:
+          type: integer
+          nullable: true
+          description: Reference ID for the selected area from the Areas master (optional)
+        areaOther:
           type: string
-        city:
+          nullable: true
+          description: Free-text area name when areaId is not provided or area is custom (optional)
+        cityId:
+          type: integer
+          nullable: true
+          description: Reference ID for the selected city from the Cities master (optional)
+        cityOther:
           type: string
+          nullable: true
+          description: Free-text city name when cityId is not provided or city is custom (optional)
         state:
           type: string
+          description: State/Province name
         latitude:
           type: number
+          format: double
+          description: Latitude coordinate of the PG location
         longitude:
           type: number
+          format: double
+          description: Longitude coordinate of the PG location
         pgType:
           type: string
           enum:
             - Boys
             - Girls
             - CoLiving
+          description: Type of accommodation
         numberOfRooms:
           type: integer
+          minimum: 1
+          description: Total number of rooms in the PG
         isFoodAvailable:
           type: boolean
+          description: Whether meals are provided (optional, defaults to false)
+        amenityIds:
+          type: array
+          items:
+            type: integer
+          nullable: true
+          description: Array of amenity IDs available in the PG (optional)
       required:
         - pgName
         - ownerName
         - ownerPhone
         - ownerEmail
         - addressLine1
-        - area
-        - city
         - state
         - latitude
         - longitude
         - pgType
         - numberOfRooms
+      example:
+        pgName: "Green Residency"
+        ownerName: "Asha Verma"
+        ownerPhone: "9876543210"
+        ownerEmail: "asha@example.com"
+        addressLine1: "12 MG Road"
+        addressLine2: "Near Central Mall"
+        nearbyMark: "Opposite City Bank"
+        areaId: 5
+        cityId: 3
+        state: "Karnataka"
+        latitude: 12.9716
+        longitude: 77.5946
+        pgType: "CoLiving"
+        numberOfRooms: 10
+        isFoodAvailable: true
+        amenityIds: [1, 2, 3]
     PGUpdateRequest:
       type: object
       properties:
@@ -1183,10 +1774,22 @@ components:
           type: string
         nearbyMark:
           type: string
-        area:
+        areaId:
+          type: integer
+          nullable: true
+          description: Reference ID for the selected area from the Areas master (optional)
+        areaOther:
           type: string
-        city:
+          nullable: true
+          description: Free-text area name when areaId is not provided or area is custom (optional)
+        cityId:
+          type: integer
+          nullable: true
+          description: Reference ID for the selected city from the Cities master (optional)
+        cityOther:
           type: string
+          nullable: true
+          description: Free-text city name when cityId is not provided or city is custom (optional)
         state:
           type: string
         latitude:
@@ -1208,6 +1811,21 @@ components:
           enum:
             - active
             - inactive
+      example:
+        pgName: "Green Residency Updated"
+        ownerName: "Asha Verma"
+        ownerPhone: "9876543210"
+        addressLine1: "12 MG Road"
+        addressLine2: "Near Central Mall"
+        nearbyMark: "Opposite City Bank"
+        areaId: 5
+        cityId: 3
+        state: "Karnataka"
+        latitude: 12.9716
+        longitude: 77.5946
+        pgType: "CoLiving"
+        numberOfRooms: 12
+        isFoodAvailable: false
     PGRoom:
       type: object
       properties:
@@ -1977,3 +2595,210 @@ components:
         status:
           type: string
           enum: [active, inactive]
+
+    City:
+      type: object
+      description: City master data model
+      properties:
+        id:
+          type: integer
+          description: Unique city ID
+        name:
+          type: string
+          description: Name of the city
+        state:
+          type: string
+          nullable: true
+          description: State/province where the city is located
+        isActive:
+          type: integer
+          description: Status flag (1 for active, 0 for inactive)
+        createdAt:
+          type: string
+          format: date-time
+          description: City creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: City last update timestamp
+
+    CityCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name of the city
+          minLength: 1
+        state:
+          type: string
+          nullable: true
+          description: State/province where the city is located
+      example:
+        name: "Bangalore"
+        state: "Karnataka"
+
+    CityUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the city
+        state:
+          type: string
+          nullable: true
+          description: State/province where the city is located
+        isActive:
+          type: integer
+          description: Status flag (1 for active, 0 for inactive)
+      example:
+        name: "Bangalore"
+        state: "Karnataka"
+        isActive: 1
+
+    CityWithAreas:
+      type: object
+      description: City with associated areas
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        state:
+          type: string
+          nullable: true
+        isActive:
+          type: integer
+        areas:
+          type: array
+          items:
+            $ref: '#/components/schemas/Area'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Area:
+      type: object
+      description: Area master data model
+      properties:
+        id:
+          type: integer
+          description: Unique area ID
+        name:
+          type: string
+          description: Name of the area
+        cityId:
+          type: integer
+          description: Reference to the city this area belongs to
+        isActive:
+          type: integer
+          description: Status flag (1 for active, 0 for inactive)
+        createdAt:
+          type: string
+          format: date-time
+          description: Area creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Area last update timestamp
+
+    AreaCreateRequest:
+      type: object
+      required:
+        - name
+        - cityId
+      properties:
+        name:
+          type: string
+          description: Name of the area
+          minLength: 1
+        cityId:
+          type: integer
+          description: ID of the city this area belongs to
+      example:
+        name: "Whitefield"
+        cityId: 1
+
+    AreaUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the area
+        cityId:
+          type: integer
+          description: ID of the city this area belongs to
+        isActive:
+          type: integer
+          description: Status flag (1 for active, 0 for inactive)
+      example:
+        name: "Whitefield"
+        cityId: 1
+        isActive: 1
+
+    Amenity:
+      type: object
+      description: PG amenity master data model
+      properties:
+        id:
+          type: integer
+          description: Unique amenity ID
+        name:
+          type: string
+          description: Name of the amenity (e.g., WiFi, Wardrobe, Gym)
+        description:
+          type: string
+          nullable: true
+          description: Detailed description of the amenity
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PhotoCategory:
+      type: object
+      description: Photo category master data model
+      properties:
+        id:
+          type: integer
+          description: Unique photo category ID
+        name:
+          type: string
+          description: Category name (e.g., Bedroom, Kitchen, Bathroom, Living Area)
+        description:
+          type: string
+          nullable: true
+          description: Description of the photo category
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ExpenseCategory:
+      type: object
+      description: Expense category master data model
+      properties:
+        id:
+          type: integer
+          description: Unique expense category ID
+        name:
+          type: string
+          description: Category name (e.g., Rent, Salary, Electricity, Water, Milk, Ration)
+        description:
+          type: string
+          nullable: true
+          description: Description of the expense category
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time

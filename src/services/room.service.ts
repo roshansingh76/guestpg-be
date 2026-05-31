@@ -3,21 +3,21 @@ import { RoomType } from '@prisma/client'
 
 export interface CreateRoomInput {
   pgId: number
-  roomType: string
   roomNumber: string
   totalBeds: number
   availableBeds: number
   pricePerBed: number
   acType: RoomType
+  securityPerBed?: boolean
 }
 
 export interface UpdateRoomInput {
-  roomType?: string
   roomNumber?: string
   totalBeds?: number
   availableBeds?: number
   pricePerBed?: number
   acType?: RoomType
+  securityPerBed?: boolean
 }
 
 export class RoomService {

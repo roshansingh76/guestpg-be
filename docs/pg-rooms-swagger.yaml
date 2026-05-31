@@ -1,0 +1,315 @@
+openapi: 3.0.3
+info:
+  title: Flexi Roomz Admin PG Rooms CRUD API
+  version: 1.0.0
+  description: Swagger specification for PG room management endpoints in the Flexi Roomz admin backend.
+servers:
+  - url: http://localhost:3000/api
+    description: Local development server
+paths:
+  /pgs/{pgId}/rooms:
+    post:
+      summary: Create a room for a PG
+      tags:
+        - Rooms
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PGRoomCreateRequest'
+      responses:
+        '201':
+          description: Room created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PGRoom'
+        '400':
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Room number already exists for this PG
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      summary: Get all rooms for a PG
+      tags:
+        - Rooms
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/Skip'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: List of rooms for the PG
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PGRoom'
+                  meta:
+                    type: object
+                    properties:
+                      skip:
+                        type: integer
+                        example: 0
+                      count:
+                        type: integer
+                        example: 10
+                      totalCount:
+                        type: integer
+                        example: 42
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /pgs/{pgId}/rooms/{roomId}:
+    get:
+      summary: Get room details by room ID
+      tags:
+        - Rooms
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/RoomId'
+      responses:
+        '200':
+          description: Room details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PGRoom'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      summary: Update room details
+      tags:
+        - Rooms
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/RoomId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PGRoomUpdateRequest'
+      responses:
+        '200':
+          description: Room updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PGRoom'
+        '400':
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete a room
+      tags:
+        - Rooms
+      parameters:
+        - $ref: '#/components/parameters/PGId'
+        - $ref: '#/components/parameters/RoomId'
+      responses:
+        '200':
+          description: Room deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  parameters:
+    PGId:
+      name: pgId
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: Paid guest house identifier
+    RoomId:
+      name: roomId
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: Room identifier
+    Skip:
+      name: skip
+      in: query
+      required: false
+      schema:
+        type: integer
+        default: 0
+      description: Number of records to skip for pagination
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        default: 10
+      description: Maximum number of records to return
+  schemas:
+    PGRoom:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        pgId:
+          type: integer
+          example: 1
+        roomType:
+          type: string
+          example: Standard
+        roomNumber:
+          type: string
+          example: "101"
+        totalBeds:
+          type: integer
+          example: 4
+        availableBeds:
+          type: integer
+          example: 2
+        pricePerBed:
+          type: integer
+          example: 5000
+        acType:
+          type: string
+          enum:
+            - AC
+            - NonAC
+          example: AC
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-05-31T12:00:00.000Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2026-05-31T12:00:00.000Z'
+    PGRoomCreateRequest:
+      type: object
+      properties:
+        roomType:
+          type: string
+          example: Standard
+        roomNumber:
+          type: string
+          example: "101"
+        totalBeds:
+          type: integer
+          example: 4
+        availableBeds:
+          type: integer
+          example: 4
+        pricePerBed:
+          type: integer
+          example: 5000
+        acType:
+          type: string
+          enum:
+            - AC
+            - NonAC
+          example: AC
+      required:
+        - roomType
+        - roomNumber
+        - totalBeds
+        - availableBeds
+        - pricePerBed
+        - acType
+    PGRoomUpdateRequest:
+      type: object
+      properties:
+        roomType:
+          type: string
+          example: Deluxe
+        roomNumber:
+          type: string
+          example: "101A"
+        totalBeds:
+          type: integer
+          example: 4
+        availableBeds:
+          type: integer
+          example: 3
+        pricePerBed:
+          type: integer
+          example: 5500
+        acType:
+          type: string
+          enum:
+            - AC
+            - NonAC
+          example: AC
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Room not found
+        code:
+          type: string
+          example: NOT_FOUND

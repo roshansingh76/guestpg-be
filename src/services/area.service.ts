@@ -8,7 +8,7 @@ export interface CreateAreaInput {
 export interface UpdateAreaInput {
   name?: string
   cityId?: number
-  status?: string
+  isActive?: number
 }
 
 export class AreaService {
@@ -26,7 +26,7 @@ export class AreaService {
   static async getAllAreas(
     filters?: {
       cityId?: number
-      status?: string
+      isActive?: number
     },
     pagination?: { page?: number; limit?: number }
   ) {
@@ -35,7 +35,7 @@ export class AreaService {
     const skip = (page - 1) * limit
 
     const where: any = {}
-    if (filters?.status) where.status = filters.status
+    if (filters?.isActive !== undefined) where.isActive = filters.isActive
     if (filters?.cityId) where.cityId = filters.cityId
 
     const [areas, total] = await Promise.all([

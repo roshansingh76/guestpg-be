@@ -32,11 +32,11 @@ export const createCity = async (req: Request, res: Response) => {
 
 export const getAllCities = async (req: Request, res: Response) => {
   try {
-    const { status, skip = 0, limit = 100 } = req.query
+    const { isActive, skip = 0, limit = 100 } = req.query
 
     const page = Math.floor(Number(skip) / Number(limit)) + 1
     const result = await CityService.getAllCities(
-      { status: status as string },
+      { isActive: isActive !== undefined ? Number(isActive) : undefined },
       { page: Number(page), limit: Number(limit) }
     )
 
@@ -70,9 +70,9 @@ export const getCityById = async (req: Request, res: Response) => {
 export const updateCity = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
-    const { name, state, status } = req.body
+    const { name, state, isActive } = req.body
 
-    const city = await CityService.updateCity(Number(id), { name, state, status })
+    const city = await CityService.updateCity(Number(id), { name, state, isActive })
 
     if (!city) {
       return sendNotFound(res, 'City not found')
@@ -106,8 +106,16 @@ export const deleteCity = async (req: Request, res: Response) => {
 
 export const getCitiesWithAreas = async (req: Request, res: Response) => {
   try {
-    const cities = await CityService.getCitiesWithAreas()
-    return sendSuccess(res, cities)
+    const { skip = 0, limit = 100 } = req.query
+    const result = await CityService.getCitiesWithAreas({
+      skip: Number(skip),
+      limit: Number(limit),
+    })
+    return sendList(res, result.data, {
+      skip: Number(skip),
+      count: result.data.length,
+      totalCount: result.pagination.totalCount,
+    })
   } catch (error: any) {
     logger.error('Get cities with areas failed', { error })
     return sendError(res, error?.message || 'Error fetching cities')

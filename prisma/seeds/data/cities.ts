@@ -14,4 +14,10 @@ export const cities = [
     state: 'Uttar Pradesh',
     isActive: 1
   }
+  ,
+  {
+    name: 'Others',
+    state: '',
+    isActive: 1
+  }
 ]

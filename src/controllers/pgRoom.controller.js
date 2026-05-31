@@ -21,26 +21,26 @@ const createRoom = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         if (auth.role !== 'admin' && auth.role !== 'super_admin' && auth.pgId !== Number(pgId)) {
             return (0, response_1.sendError)(res, 'Forbidden', 'FORBIDDEN', [], 403);
         }
-        const { roomType, roomNumber, totalBeds, availableBeds, pricePerBed, acType } = req.body;
+        const { roomNumber, totalBeds, availableBeds, pricePerBed, acType, securityPerBed } = req.body;
         const missingFields = (0, validation_1.buildMissingFieldDetails)(req.body, [
-            'roomType',
             'roomNumber',
             'totalBeds',
             'availableBeds',
             'pricePerBed',
             'acType',
+            'securityPerBed',
         ]);
         if (missingFields.length > 0) {
             return (0, response_1.sendBadRequest)(res, 'Missing required fields', missingFields);
         }
         const room = yield room_service_1.RoomService.createRoom({
             pgId: Number(pgId),
-            roomType,
             roomNumber,
             totalBeds: Number(totalBeds),
             availableBeds: Number(availableBeds),
             pricePerBed: Number(pricePerBed),
             acType,
+            securityPerBed: Boolean(securityPerBed),
         });
         return (0, response_1.sendCreated)(res, room);
     }

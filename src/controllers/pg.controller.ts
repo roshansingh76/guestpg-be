@@ -11,7 +11,36 @@ import {
   sendList,
   sendConflict,
 } from '../utils/response'
-import { buildMissingFieldDetails } from '../utils/validation'
+// import { buildMissingFieldDetails } from '../utils/validation'
+import { z } from 'zod'
+
+const numberFromString = (val: unknown) => {
+  if (typeof val === 'string' && val.trim() !== '') return Number(val)
+  return val
+}
+
+const createPGSchema = z.object({
+  pgName: z.string().min(1),
+  ownerName: z.string().min(1),
+  ownerPhone: z.string().min(5),
+  ownerEmail: z.string().email(),
+  addressLine1: z.string().min(1),
+  addressLine2: z.string().optional(),
+  nearbyMark: z.string().optional(),
+  areaId: z.preprocess(numberFromString, z.number().int()).optional(),
+  areaOther: z.string().min(1).optional(),
+  cityId: z.preprocess(numberFromString, z.number().int()).optional(),
+  cityOther: z.string().min(1).optional(),
+  state: z.string().min(1),
+  latitude: z.preprocess(numberFromString, z.number()),
+  longitude: z.preprocess(numberFromString, z.number()),
+  pgType: z.enum(['Boys', 'Girls', 'CoLiving']),
+  numberOfRooms: z.preprocess(numberFromString, z.number().int().nonnegative()),
+  isFoodAvailable: z.boolean().optional(),
+  amenityIds: z.array(z.preprocess(numberFromString, z.number().int())).optional(),
+})
+
+const updatePGSchema = createPGSchema.partial()
 
 export const createPG = async (req: Request, res: Response) => {
   try {
@@ -24,29 +53,22 @@ export const createPG = async (req: Request, res: Response) => {
       addressLine2,
       nearbyMark,
       areaId,
+        areaOther,
       cityId,
+        cityOther,
       state,
       latitude,
       longitude,
       pgType,
       numberOfRooms,
       isFoodAvailable,
+      amenityIds,
     } = req.body
-
-    const missingFields = buildMissingFieldDetails(req.body, [
-      'pgName',
-      'ownerName',
-      'ownerPhone',
-      'ownerEmail',
-      'addressLine1',
-      'state',
-      'latitude',
-      'longitude',
-      'pgType',
-    ])
-
-    if (missingFields.length > 0) {
-      return sendBadRequest(res, 'Missing required fields', missingFields)
+    // Validate request body with Zod
+    const parsed = createPGSchema.safeParse(req.body)
+    if (!parsed.success) {
+      const details = parsed.error.issues.map((e: z.ZodIssue) => ({ field: (e.path || []).join('.'), message: e.message }))
+      return sendBadRequest(res, 'Invalid request body', details)
     }
 
     const pg = await PGService.createPG({
@@ -57,14 +79,17 @@ export const createPG = async (req: Request, res: Response) => {
       addressLine1,
       addressLine2,
       nearbyMark,
-      areaId: areaId ? Number(areaId) : undefined,
-      cityId: cityId ? Number(cityId) : undefined,
+      areaId: areaId !== undefined ? Number(areaId) : undefined,
+      areaOther: areaOther ? String(areaOther).trim() : undefined,
+      cityId: cityId !== undefined ? Number(cityId) : undefined,
+      cityOther: cityOther ? String(cityOther).trim() : undefined,
       state,
       latitude: Number(latitude),
       longitude: Number(longitude),
       pgType,
       numberOfRooms,
       isFoodAvailable: isFoodAvailable || false,
+      amenityIds: Array.isArray(amenityIds) ? amenityIds.map(Number) : undefined,
     })
 
     return sendCreated(res, pg)
@@ -123,7 +148,13 @@ export const updatePG = async (req: Request, res: Response) => {
     const { id } = req.params
     const updateData = req.body
 
-    const pg = await PGService.updatePG(Number(id), updateData)
+    const parsed = updatePGSchema.safeParse(updateData)
+    if (!parsed.success) {
+      const details = parsed.error.issues.map((e: z.ZodIssue) => ({ field: (e.path || []).join('.'), message: e.message }))
+      return sendBadRequest(res, 'Invalid request body', details)
+    }
+
+    const pg = await PGService.updatePG(Number(id), parsed.data)
     return sendSuccess(res, pg)
   } catch (error: any) {
     logger.error('Update PG failed', { error })

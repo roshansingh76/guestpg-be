@@ -5,6 +5,7 @@ import userRoutes from './user.routes'
 import cityRoutes from './city.routes'
 import areaRoutes from './area.routes'
 import roleRoutes from './role.routes'
+import masterRoutes from './master.routes'
 import {
   getAllBills,
   getBillByIdUnified,
@@ -23,6 +24,7 @@ router.use('/users', userRoutes)
 router.use('/cities', cityRoutes)
 router.use('/areas', areaRoutes)
 router.use('/roles', roleRoutes)
+router.use('/master', masterRoutes)
 
 // ============ Unified Bills Route ============
 router.get('/bills', authRequired, getAllBills)

@@ -30,8 +30,8 @@ class CityService {
             const limit = (pagination === null || pagination === void 0 ? void 0 : pagination.limit) || 10;
             const skip = (page - 1) * limit;
             const where = {};
-            if (filters === null || filters === void 0 ? void 0 : filters.status)
-                where.status = filters.status;
+            if ((filters === null || filters === void 0 ? void 0 : filters.isActive) !== undefined)
+                where.isActive = filters.isActive;
             const [cities, total] = yield Promise.all([
                 prisma_1.prisma.city.findMany({
                     where,
@@ -85,19 +85,34 @@ class CityService {
             });
         });
     }
-    // Get all cities with areas
-    static getCitiesWithAreas() {
+    // Get all cities with areas and pagination
+    static getCitiesWithAreas(pagination) {
         return __awaiter(this, void 0, void 0, function* () {
-            return prisma_1.prisma.city.findMany({
-                where: { status: 'active' },
-                include: {
-                    areas: {
-                        where: { status: 'active' },
-                        orderBy: { name: 'asc' },
+            const skip = (pagination === null || pagination === void 0 ? void 0 : pagination.skip) || 0;
+            const limit = (pagination === null || pagination === void 0 ? void 0 : pagination.limit) || 100;
+            const [cities, total] = yield Promise.all([
+                prisma_1.prisma.city.findMany({
+                    where: { isActive: 1 },
+                    include: {
+                        areas: {
+                            where: { isActive: 1 },
+                            orderBy: { name: 'asc' },
+                        },
                     },
+                    orderBy: { name: 'asc' },
+                    skip,
+                    take: limit,
+                }),
+                prisma_1.prisma.city.count({ where: { isActive: 1 } }),
+            ]);
+            return {
+                data: cities,
+                pagination: {
+                    skip,
+                    limit,
+                    totalCount: total,
                 },
-                orderBy: { name: 'asc' },
-            });
+            };
         });
     }
 }

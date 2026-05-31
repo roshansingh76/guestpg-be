@@ -20,15 +20,15 @@ export const createRoom = async (req: Request, res: Response) => {
     if (auth.role !== 'admin' && auth.role !== 'super_admin' && auth.pgId !== Number(pgId)) {
       return sendError(res, 'Forbidden', 'FORBIDDEN', [], 403)
     }
-    const { roomType, roomNumber, totalBeds, availableBeds, pricePerBed, acType } = req.body
+    const { roomNumber, totalBeds, availableBeds, pricePerBed, acType, securityPerBed } = req.body
 
     const missingFields = buildMissingFieldDetails(req.body, [
-      'roomType',
       'roomNumber',
       'totalBeds',
       'availableBeds',
       'pricePerBed',
       'acType',
+      'securityPerBed',
     ])
 
     if (missingFields.length > 0) {
@@ -37,12 +37,12 @@ export const createRoom = async (req: Request, res: Response) => {
 
     const room = await RoomService.createRoom({
       pgId: Number(pgId),
-      roomType,
       roomNumber,
       totalBeds: Number(totalBeds),
       availableBeds: Number(availableBeds),
       pricePerBed: Number(pricePerBed),
       acType,
+      securityPerBed: Boolean(securityPerBed),
     })
 
     return sendCreated(res, room)

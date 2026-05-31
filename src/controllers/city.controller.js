@@ -33,9 +33,9 @@ const createCity = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 exports.createCity = createCity;
 const getAllCities = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { status, skip = 0, limit = 100 } = req.query;
+        const { isActive, skip = 0, limit = 100 } = req.query;
         const page = Math.floor(Number(skip) / Number(limit)) + 1;
-        const result = yield city_service_1.CityService.getAllCities({ status: status }, { page: Number(page), limit: Number(limit) });
+        const result = yield city_service_1.CityService.getAllCities({ isActive: isActive !== undefined ? Number(isActive) : undefined }, { page: Number(page), limit: Number(limit) });
         return (0, response_1.sendList)(res, result.data, {
             skip: Number(skip),
             count: result.data.length,
@@ -66,8 +66,8 @@ exports.getCityById = getCityById;
 const updateCity = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
-        const { name, state, status } = req.body;
-        const city = yield city_service_1.CityService.updateCity(Number(id), { name, state, status });
+        const { name, state, isActive } = req.body;
+        const city = yield city_service_1.CityService.updateCity(Number(id), { name, state, isActive });
         if (!city) {
             return (0, response_1.sendNotFound)(res, 'City not found');
         }
@@ -99,8 +99,16 @@ const deleteCity = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 exports.deleteCity = deleteCity;
 const getCitiesWithAreas = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const cities = yield city_service_1.CityService.getCitiesWithAreas();
-        return (0, response_1.sendSuccess)(res, cities);
+        const { skip = 0, limit = 100 } = req.query;
+        const result = yield city_service_1.CityService.getCitiesWithAreas({
+            skip: Number(skip),
+            limit: Number(limit),
+        });
+        return (0, response_1.sendList)(res, result.data, {
+            skip: Number(skip),
+            count: result.data.length,
+            totalCount: result.pagination.totalCount,
+        });
     }
     catch (error) {
         logger_1.logger.error('Get cities with areas failed', { error });

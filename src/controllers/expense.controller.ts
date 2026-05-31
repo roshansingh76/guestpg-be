@@ -13,15 +13,15 @@ import {
 export const createExpense = async (req: Request, res: Response) => {
   try {
     const { pgId } = req.params
-    const { category, amount, description, date } = req.body
+    const { categoryId, amount, description, date } = req.body
 
-    if (!category || amount === undefined) {
-      return sendBadRequest(res, 'category and amount are required')
+    if (!categoryId || amount === undefined) {
+      return sendBadRequest(res, 'categoryId and amount are required')
     }
 
     const expense = await ExpenseService.createExpense({
       pgId: Number(pgId),
-      category: category as any,
+      categoryId: Number(categoryId),
       amount: Number(amount),
       description,
       date: date ? new Date(date) : new Date(),
@@ -74,10 +74,10 @@ export const getExpenseById = async (req: Request, res: Response) => {
 export const updateExpense = async (req: Request, res: Response) => {
   try {
     const { pgId, expenseId } = req.params
-    const { category, amount, description, date } = req.body
+    const { categoryId, amount, description, date } = req.body
 
     const expense = await ExpenseService.updateExpense(Number(pgId), Number(expenseId), {
-      category: category as any,
+      categoryId: categoryId !== undefined ? Number(categoryId) : undefined,
       amount: amount !== undefined ? Number(amount) : undefined,
       description,
       date: date ? new Date(date) : undefined,

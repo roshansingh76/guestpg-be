@@ -29,4 +29,10 @@ export const areas = [
     cityName: 'Noida',
     isActive: 1
   }
+  ,
+  {
+    name: 'Others',
+    cityName: 'Others',
+    isActive: 1
+  }
 ]

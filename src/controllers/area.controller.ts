@@ -32,11 +32,11 @@ export const createArea = async (req: Request, res: Response) => {
 
 export const getAllAreas = async (req: Request, res: Response) => {
   try {
-    const { cityId, status, skip = 0, limit = 100 } = req.query
+    const { cityId, isActive, skip = 0, limit = 100 } = req.query
 
     const page = Math.floor(Number(skip) / Number(limit)) + 1
     const result = await AreaService.getAllAreas(
-      { cityId: cityId ? Number(cityId) : undefined, status: status as string },
+      { cityId: cityId ? Number(cityId) : undefined, isActive: isActive !== undefined ? Number(isActive) : undefined },
       { page: Number(page), limit: Number(limit) }
     )
 
@@ -70,12 +70,12 @@ export const getAreaById = async (req: Request, res: Response) => {
 export const updateArea = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
-    const { name, cityId, status } = req.body
+    const { name, cityId, isActive } = req.body
 
     const area = await AreaService.updateArea(Number(id), {
       name,
       cityId: cityId ? Number(cityId) : undefined,
-      status,
+      isActive: isActive !== undefined ? Number(isActive) : undefined,
     })
 
     if (!area) {

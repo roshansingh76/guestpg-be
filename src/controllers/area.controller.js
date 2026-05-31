@@ -33,9 +33,9 @@ const createArea = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 exports.createArea = createArea;
 const getAllAreas = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { cityId, status, skip = 0, limit = 100 } = req.query;
+        const { cityId, isActive, skip = 0, limit = 100 } = req.query;
         const page = Math.floor(Number(skip) / Number(limit)) + 1;
-        const result = yield area_service_1.AreaService.getAllAreas({ cityId: cityId ? Number(cityId) : undefined, status: status }, { page: Number(page), limit: Number(limit) });
+        const result = yield area_service_1.AreaService.getAllAreas({ cityId: cityId ? Number(cityId) : undefined, isActive: isActive !== undefined ? Number(isActive) : undefined }, { page: Number(page), limit: Number(limit) });
         return (0, response_1.sendList)(res, result.data, {
             skip: Number(skip),
             count: result.data.length,
@@ -66,11 +66,11 @@ exports.getAreaById = getAreaById;
 const updateArea = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
-        const { name, cityId, status } = req.body;
+        const { name, cityId, isActive } = req.body;
         const area = yield area_service_1.AreaService.updateArea(Number(id), {
             name,
             cityId: cityId ? Number(cityId) : undefined,
-            status,
+            isActive: isActive !== undefined ? Number(isActive) : undefined,
         });
         if (!area) {
             return (0, response_1.sendNotFound)(res, 'Area not found');

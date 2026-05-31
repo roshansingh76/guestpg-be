@@ -8,9 +8,15 @@ const path_1 = __importDefault(require("path"));
 const config_1 = require("prisma/config");
 const adapter_pg_1 = require("@prisma/adapter-pg");
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, '.env') });
-const connectionString = process.env.DATABASE_URL ||
+const rawConnectionString = process.env.DATABASE_URL ||
     `postgresql://${process.env.DB_USERNAME || 'postgres'}:${process.env.DB_PASSWORD || 'postgres'}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '5432'}/${process.env.DB_NAME || 'guestpg'}?schema=${process.env.DB_SCHEMA || 'public'}`;
-exports.default = (0, config_1.defineConfig)({
+const connectionString = addSslMode(rawConnectionString);
+function addSslMode(url) {
+    if (url.includes('sslmode='))
+        return url;
+    return url.includes('?') ? `${url}&sslmode=prefer` : `${url}?sslmode=prefer`;
+}
+module.exports = (0, config_1.defineConfig)({
     schema: 'prisma/schema.prisma',
     datasource: {
         url: connectionString,
