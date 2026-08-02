@@ -83,11 +83,23 @@ model Bed {
   @@map("beds")
 }
 
-// ============ City & Area Master Models ============
+// ============ State, City & Area Master Models ============
+model State {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  isActive  Int      @default(1) @map("is_active")
+  cities    City[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("states")
+}
+
 model City {
   id        Int      @id @default(autoincrement())
   name      String   @unique
-  state     String?
+  stateId   Int?     @map("state_id")
+  state     State?   @relation(fields: [stateId], references: [id], onDelete: SetNull)
   isActive  Int      @default(1) @map("is_active")
   areas     Area[]
   pgs       PG[]

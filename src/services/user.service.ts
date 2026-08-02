@@ -93,9 +93,11 @@ export class UserService {
   static async getAllUsers(
     filters?: {
       role?: string
+      roles?: string[]
       roleId?: number
       status?: string
       pgId?: number
+      pgIds?: number[]
     },
     pagination?: { page?: number; limit?: number }
   ) {
@@ -104,10 +106,15 @@ export class UserService {
     const skip = (page - 1) * limit
 
     const where: any = {}
-    if (filters?.roleId) where.roleId = filters.roleId
+    if (filters?.roles && filters.roles.length > 0) where.role = { name: { in: filters.roles } }
+    else if (filters?.roleId) where.roleId = filters.roleId
     else if (filters?.role) where.role = { name: filters.role }
     if (filters?.status) where.status = filters.status
-    if (filters?.pgId) where.userPGs = { some: { pgId: filters.pgId } }
+    if (filters?.pgIds && filters.pgIds.length > 0) {
+      where.userPGs = { some: { pgId: { in: filters.pgIds } } }
+    } else if (filters?.pgId) {
+      where.userPGs = { some: { pgId: filters.pgId } }
+    }
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({
@@ -199,9 +206,9 @@ export class UserService {
     if (data.phone) updateData.phone = data.phone
     if (data.roleId !== undefined) updateData.roleId = data.roleId
     if (data.status) updateData.status = data.status
-    if (data.pgId !== undefined) updateData.pgId = data.pgId
+    if (data.pgId !== undefined) updateData.pGId = data.pgId
     if (data.pgIds !== undefined) {
-      updateData.pgId = data.pgIds && data.pgIds.length > 0 ? data.pgIds[0] : null
+      updateData.pGId = data.pgIds && data.pgIds.length > 0 ? data.pgIds[0] : null
       updateData.userPGs = {
         deleteMany: {},
         create: data.pgIds?.map((pgId) => ({ pg: { connect: { id: pgId } } })) ?? [],
@@ -316,7 +323,7 @@ export class UserService {
   // Get user statistics
   static async getUserStatistics() {
     const total = await prisma.user.count()
-    const admins = await prisma.user.count({ where: { role: { name: 'admin' } } })
+    const staff = await prisma.user.count({ where: { role: { name: 'staff' } } })
     const pgOwners = await prisma.user.count({ where: { role: { name: 'pg_owner' } } })
     const pgStaff = await prisma.user.count({ where: { role: { name: 'pg_staff' } } })
     const active = await prisma.user.count({ where: { status: 'active' } })
@@ -324,7 +331,7 @@ export class UserService {
 
     return {
       total,
-      admins,
+      staff,
       pgOwners,
       pgStaff,
       active,

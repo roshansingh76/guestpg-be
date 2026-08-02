@@ -17,7 +17,7 @@ export const createRoom = async (req: Request, res: Response) => {
   try {
     const { pgId } = req.params
     const auth = req.auth as AuthPayload
-    if (auth.role !== 'admin' && auth.role !== 'super_admin' && auth.pgId !== Number(pgId)) {
+    if (auth.role !== 'staff' && auth.role !== 'super_admin' && auth.pgId !== Number(pgId)) {
       return sendError(res, 'Forbidden', 'FORBIDDEN', [], 403)
     }
     const { roomNumber, totalBeds, availableBeds, pricePerBed, acType, securityPerBed } = req.body
@@ -59,7 +59,7 @@ export const getRoomsByPG = async (req: Request, res: Response) => {
   try {
     const { pgId } = req.params
     const auth = req.auth as AuthPayload
-    if (auth.role !== 'admin' && auth.role !== 'super_admin' && auth.pgId !== Number(pgId)) {
+    if (auth.role !== 'staff' && auth.role !== 'super_admin' && auth.pgId !== Number(pgId)) {
       return sendError(res, 'Forbidden', 'FORBIDDEN', [], 403)
     }
     const { skip = 0, limit = 10 } = req.query
@@ -81,7 +81,7 @@ export const getRoomById = async (req: Request, res: Response) => {
   try {
     const { pgId, roomId } = req.params
     const auth = req.auth as AuthPayload
-    if (auth.role !== 'admin' && auth.role !== 'super_admin' && auth.pgId !== Number(pgId)) {
+    if (auth.role !== 'staff' && auth.role !== 'super_admin' && auth.pgId !== Number(pgId)) {
       return sendError(res, 'Forbidden', 'FORBIDDEN', [], 403)
     }
     const room = await RoomService.getRoomById(Number(roomId), Number(pgId))
@@ -101,7 +101,7 @@ export const updateRoom = async (req: Request, res: Response) => {
   try {
     const { pgId, roomId } = req.params
     const auth = req.auth as AuthPayload
-    if (auth.role !== 'admin' && auth.role !== 'super_admin' && auth.pgId !== Number(pgId)) {
+    if (auth.role !== 'staff' && auth.role !== 'super_admin' && auth.pgId !== Number(pgId)) {
       return sendError(res, 'Forbidden', 'FORBIDDEN', [], 403)
     }
     const updateData = req.body
@@ -123,7 +123,7 @@ export const deleteRoom = async (req: Request, res: Response) => {
   try {
     const { pgId, roomId } = req.params
     const auth = req.auth as AuthPayload
-    if (auth.role !== 'admin' && auth.role !== 'super_admin' && auth.pgId !== Number(pgId)) {
+    if (auth.role !== 'staff' && auth.role !== 'super_admin' && auth.pgId !== Number(pgId)) {
       return sendError(res, 'Forbidden', 'FORBIDDEN', [], 403)
     }
     const deleted = await RoomService.deleteRoom(Number(roomId), Number(pgId))

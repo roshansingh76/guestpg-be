@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import { PGService } from '../services/pg.service'
 import { logger } from '../utils/logger'
 import type { AuthPayload } from '../middleware/auth'
+import { hasPGAccess } from '../middleware/auth'
 import {
   sendBadRequest,
   sendCreated,
@@ -22,11 +23,10 @@ const numberFromString = (val: unknown) => {
 const createPGSchema = z.object({
   pgName: z.string().min(1),
   ownerName: z.string().min(1),
-  ownerPhone: z.string().min(5),
+  ownerPhone: z.string().regex(/^[6-9]\d{9}$/, 'Owner phone must be a valid 10-digit mobile number'),
   ownerEmail: z.string().email(),
   addressLine1: z.string().min(1),
   addressLine2: z.string().optional(),
-  nearbyMark: z.string().optional(),
   areaId: z.preprocess(numberFromString, z.number().int()).optional(),
   areaOther: z.string().min(1).optional(),
   cityId: z.preprocess(numberFromString, z.number().int()).optional(),
@@ -51,7 +51,6 @@ export const createPG = async (req: Request, res: Response) => {
       ownerEmail,
       addressLine1,
       addressLine2,
-      nearbyMark,
       areaId,
         areaOther,
       cityId,
@@ -78,7 +77,6 @@ export const createPG = async (req: Request, res: Response) => {
       ownerEmail,
       addressLine1,
       addressLine2,
-      nearbyMark,
       areaId: areaId !== undefined ? Number(areaId) : undefined,
       areaOther: areaOther ? String(areaOther).trim() : undefined,
       cityId: cityId !== undefined ? Number(cityId) : undefined,
@@ -129,11 +127,16 @@ export const getAllPGs = async (req: Request, res: Response) => {
 
 export const getPGById = async (req: Request, res: Response) => {
   try {
+    const auth = req.auth as AuthPayload
     const { id } = req.params
     const pg = await PGService.getPGById(Number(id))
 
     if (!pg) {
       return sendNotFound(res, 'PG not found')
+    }
+
+    if (!hasPGAccess(auth, Number(id))) {
+      return sendError(res, 'Access denied to this PG', 'FORBIDDEN', [], 403)
     }
 
     return sendSuccess(res, pg)

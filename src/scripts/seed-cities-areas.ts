@@ -1,16 +1,25 @@
 import { prisma } from '../db/prisma'
 
+async function getOrCreateState(name: string) {
+  return prisma.state.upsert({
+    where: { name },
+    update: {},
+    create: { name, isActive: 1 },
+  })
+}
+
 const seedCitiesAndAreas = async () => {
   try {
     console.log('🌱 Starting Cities and Areas seeding...')
 
     // Delhi
+    const delhiState = await getOrCreateState('Delhi')
     const delhi = await prisma.city.upsert({
       where: { name: 'Delhi' },
       update: {},
       create: {
         name: 'Delhi',
-        state: 'Delhi',
+        stateId: delhiState.id,
         isActive: 1,
       },
     })
@@ -48,12 +57,13 @@ const seedCitiesAndAreas = async () => {
     console.log(`✅ Created Delhi with ${delhiAreas.length} areas`)
 
     // Gurgaon (Gurugram)
+    const haryanaState = await getOrCreateState('Haryana')
     const gurgaon = await prisma.city.upsert({
       where: { name: 'Gurgaon' },
       update: {},
       create: {
         name: 'Gurgaon',
-        state: 'Haryana',
+        stateId: haryanaState.id,
         isActive: 1,
       },
     })
@@ -96,12 +106,13 @@ const seedCitiesAndAreas = async () => {
     console.log(`✅ Created Gurgaon with ${gurgaonAreas.length} areas`)
 
     // Noida
+    const upState = await getOrCreateState('Uttar Pradesh')
     const noida = await prisma.city.upsert({
       where: { name: 'Noida' },
       update: {},
       create: {
         name: 'Noida',
-        state: 'Uttar Pradesh',
+        stateId: upState.id,
         isActive: 1,
       },
     })

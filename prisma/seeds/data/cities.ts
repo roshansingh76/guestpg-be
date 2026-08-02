@@ -1,23 +1,23 @@
 export const cities = [
   {
     name: 'Gurgaon',
-    state: 'Haryana',
+    stateName: 'Haryana',
     isActive: 1
   },
   {
     name: 'Delhi',
-    state: 'Delhi',
+    stateName: 'Delhi',
     isActive: 1
   },
   {
     name: 'Noida',
-    state: 'Uttar Pradesh',
+    stateName: 'Uttar Pradesh',
     isActive: 1
   }
   ,
   {
     name: 'Others',
-    state: '',
+    stateName: null,
     isActive: 1
   }
 ]

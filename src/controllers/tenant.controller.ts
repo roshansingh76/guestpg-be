@@ -21,12 +21,12 @@ import type { AuthPayload } from '../middleware/auth'
 
 const tenantCreateSchema = z.object({
   name: z.string().min(1),
-  phone: z.string().min(5),
-  aadhar: z.string().min(4),
+  phone: z.string().regex(/^[6-9]\d{9}$/, 'Phone must be a valid 10-digit mobile number'),
+  aadhar: z.string().regex(/^\d{12}$/, 'Aadhaar must be exactly 12 digits'),
   roomId: z.string().optional(),
   address: z.string().optional(),
   emergency: z.string().optional(),
-  emergencyPhone: z.string().optional(),
+  emergencyPhone: z.string().regex(/^[6-9]\d{9}$/, 'Emergency phone must be a valid 10-digit mobile number').optional().or(z.literal('')),
   idProofUrl: z.string().optional(),
   photoUrl: z.string().optional(),
   moveInDate: z.string().optional(),
@@ -50,7 +50,7 @@ export async function listTenants(req: Request, res: Response) {
   try {
     const pgId = Number(req.params.pgId)
     const auth = req.auth as AuthPayload
-    if (auth.role !== 'admin' && auth.role !== 'super_admin' && auth.pgId !== pgId) {
+    if (auth.role !== 'staff' && auth.role !== 'super_admin' && auth.pgId !== pgId) {
       return sendError(res, 'Forbidden', 'FORBIDDEN', [], 403)
     }
     const { status, skip = 0, limit = 20 } = req.query
@@ -69,7 +69,7 @@ export async function getTenant(req: Request, res: Response) {
     const pgId = Number(req.params.pgId)
     const id = Number(req.params.id)
     const auth = req.auth as AuthPayload
-    if (auth.role !== 'admin' && auth.role !== 'super_admin' && auth.pgId !== pgId) {
+    if (auth.role !== 'staff' && auth.role !== 'super_admin' && auth.pgId !== pgId) {
       return sendError(res, 'Forbidden', 'FORBIDDEN', [], 403)
     }
 
@@ -88,7 +88,7 @@ export async function createTenant(req: Request, res: Response) {
     const pgId = Number(req.params.pgId)
     if (!Number.isFinite(pgId) || pgId <= 0) return sendBadRequest(res, 'Invalid pgId')
     const auth = req.auth as AuthPayload
-    if (auth.role !== 'admin' && auth.role !== 'super_admin' && auth.pgId !== pgId) {
+    if (auth.role !== 'staff' && auth.role !== 'super_admin' && auth.pgId !== pgId) {
       return sendError(res, 'Forbidden', 'FORBIDDEN', [], 403)
     }
 
@@ -144,7 +144,7 @@ export async function updateTenant(req: Request, res: Response) {
     const id = Number(req.params.id)
     if (!Number.isFinite(id)) return sendBadRequest(res, 'Invalid id')
     const auth = req.auth as AuthPayload
-    if (auth.role !== 'admin' && auth.role !== 'super_admin' && auth.pgId !== pgId) {
+    if (auth.role !== 'staff' && auth.role !== 'super_admin' && auth.pgId !== pgId) {
       return sendError(res, 'Forbidden', 'FORBIDDEN', [], 403)
     }
 
@@ -200,7 +200,7 @@ export async function checkoutTenant(req: Request, res: Response) {
     const pgId = Number(req.params.pgId)
     const id = Number(req.params.id)
     const auth = req.auth as AuthPayload
-    if (auth.role !== 'admin' && auth.role !== 'super_admin' && auth.pgId !== pgId) {
+    if (auth.role !== 'staff' && auth.role !== 'super_admin' && auth.pgId !== pgId) {
       return sendError(res, 'Forbidden', 'FORBIDDEN', [], 403)
     }
 
@@ -220,7 +220,7 @@ export async function deleteTenant(req: Request, res: Response) {
     const id = Number(req.params.id)
     if (!Number.isFinite(id)) return sendBadRequest(res, 'Invalid id')
     const auth = req.auth as AuthPayload
-    if (auth.role !== 'admin' && auth.role !== 'super_admin' && auth.pgId !== pgId) {
+    if (auth.role !== 'staff' && auth.role !== 'super_admin' && auth.pgId !== pgId) {
       return sendError(res, 'Forbidden', 'FORBIDDEN', [], 403)
     }
 

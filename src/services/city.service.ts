@@ -2,12 +2,12 @@ import { prisma } from '../db/prisma'
 
 export interface CreateCityInput {
   name: string
-  state?: string
+  stateId?: number
 }
 
 export interface UpdateCityInput {
   name?: string
-  state?: string
+  stateId?: number | null
   isActive?: number
 }
 
@@ -18,6 +18,7 @@ export class CityService {
       data,
       include: {
         areas: true,
+        state: true,
       },
     })
   }
@@ -41,6 +42,7 @@ export class CityService {
         where,
         include: {
           areas: true,
+          state: true,
         },
         skip,
         take: limit,
@@ -65,6 +67,7 @@ export class CityService {
       where: { id },
       include: {
         areas: true,
+        state: true,
       },
     })
   }
@@ -76,6 +79,7 @@ export class CityService {
       data,
       include: {
         areas: true,
+        state: true,
       },
     })
   }
@@ -100,6 +104,7 @@ export class CityService {
             where: { isActive: 1 },
             orderBy: { name: 'asc' },
           },
+          state: true,
         },
         orderBy: { name: 'asc' },
         skip,

@@ -4,6 +4,7 @@ import pgRoutes from './pg.routes'
 import userRoutes from './user.routes'
 import cityRoutes from './city.routes'
 import areaRoutes from './area.routes'
+import stateRoutes from './state.routes'
 import roleRoutes from './role.routes'
 import masterRoutes from './master.routes'
 import {
@@ -23,6 +24,7 @@ router.use('/pgs', pgRoutes)
 router.use('/users', userRoutes)
 router.use('/cities', cityRoutes)
 router.use('/areas', areaRoutes)
+router.use('/states', stateRoutes)
 router.use('/roles', roleRoutes)
 router.use('/master', masterRoutes)
 

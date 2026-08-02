@@ -84,7 +84,7 @@ export class RoleService {
     const where: any = {}
 
     if (filters?.status) {
-      where.status = filters.status
+      where.isActive = filters.status === 'inactive' ? 0 : 1
     }
 
     if (filters?.search) {
@@ -140,7 +140,7 @@ export class RoleService {
     if (data.displayName !== undefined) updateData.displayName = data.displayName.trim()
     if (data.description !== undefined) updateData.description = data.description?.trim() ?? null
     if (data.permissions !== undefined) updateData.permissions = data.permissions
-    if (data.status !== undefined) updateData.status = data.status
+    if (data.status !== undefined) updateData.isActive = data.status === 'inactive' ? 0 : 1
 
     return prisma.role.update({ where: { id }, data: updateData })
   }
@@ -168,9 +168,9 @@ export class RoleService {
         isSystem: true,
       },
       {
-        name: 'admin',
-        displayName: 'Admin',
-        description: 'Administrative access, can manage users, PGs, billing and configuration',
+        name: 'staff',
+        displayName: 'Staff',
+        description: 'Sub-admin with full operational access — manages users, PGs, billing and configuration, but cannot manage roles',
         permissions: ALL_PERMISSIONS.filter((p) => p !== 'roles:write'),
         isSystem: true,
       },

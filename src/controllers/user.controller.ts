@@ -2,6 +2,8 @@ import { Request, Response } from 'express'
 import { UserService } from '../services/user.service'
 import { RoleService } from '../services/role.service'
 import { logger } from '../utils/logger'
+import { hasPGAccess } from '../middleware/auth'
+import type { AuthPayload } from '../middleware/auth'
 import {
   sendBadRequest,
   sendCreated,
@@ -14,11 +16,16 @@ import {
 
 export const createUser = async (req: Request, res: Response) => {
   try {
+    const auth = (req as any).auth as AuthPayload
     const { name, email, phone, password, role, pgId, status } = req.body
 
     // Accept numeric role id (preferred). If a string role name is sent, allow it too.
     if (!name || !email || !phone || !password || role === undefined || role === null) {
       return sendBadRequest(res, 'Missing required fields')
+    }
+
+    if (String(password).length < 6) {
+      return sendBadRequest(res, 'Password must be at least 6 characters')
     }
 
     // Normalize role input: if numeric -> treat as roleId, else treat as role name
@@ -31,6 +38,21 @@ export const createUser = async (req: Request, res: Response) => {
 
     if (!roleRecord) {
       return sendBadRequest(res, 'Invalid role. Must be a valid role id or role name')
+    }
+
+    // pg_owner can only create pg_staff users for their own PGs
+    if (auth.role === 'pg_owner') {
+      if (roleRecord.name !== 'pg_staff') {
+        return sendError(res, 'PG owners can only create staff users', 'FORBIDDEN', [], 403)
+      }
+      const requestedPgIds: number[] = Array.isArray(req.body.pgIds)
+        ? req.body.pgIds.map(Number)
+        : pgId ? [Number(pgId)] : []
+      const ownerPgIds = auth.pgIds || []
+      const unauthorized = requestedPgIds.filter((id) => !ownerPgIds.includes(id))
+      if (unauthorized.length > 0) {
+        return sendError(res, 'Cannot assign users to PGs you do not manage', 'FORBIDDEN', [], 403)
+      }
     }
 
     if ((roleRecord.name === 'pg_owner' || roleRecord.name === 'pg_staff') && !pgId && !Array.isArray(req.body.pgIds)) {
@@ -60,16 +82,29 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const { role, status, pgId, skip = 0, limit = 10 } = req.query
+    const auth = (req as any).auth as AuthPayload
+    const { role, roles, status, pgId, skip = 0, limit = 10 } = req.query
 
     const filters: any = {}
-    if (role) {
-      // role query can be id or name; prefer numeric id
+    if (roles) {
+      filters.roles = String(roles).split(',').map((r) => r.trim()).filter(Boolean)
+    } else if (role) {
       if (!isNaN(Number(role))) filters.roleId = Number(role)
       else filters.role = String(role)
     }
     if (status) filters.status = status
     if (pgId) filters.pgId = Number(pgId)
+
+    // pg_owner can only see users assigned to their own PGs
+    if (auth.role === 'pg_owner') {
+      const ownerPgIds = auth.pgIds || []
+      if (pgId && !ownerPgIds.includes(Number(pgId))) {
+        return sendList(res, [], { skip: Number(skip), count: 0, totalCount: 0 })
+      }
+      if (!pgId && ownerPgIds.length > 0) {
+        filters.pgIds = ownerPgIds
+      }
+    }
 
     const page = Math.floor(Number(skip) / Number(limit)) + 1
     const result = await UserService.getAllUsers(filters, {

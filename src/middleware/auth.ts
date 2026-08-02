@@ -29,9 +29,8 @@ export function authRequired(req: Request, res: Response, next: NextFunction) {
 }
 
 export function hasPGAccess(auth: AuthPayload, pgId: number) {
-  if (auth.role === 'admin' || auth.role === 'super_admin') return true
-  if (!auth.pgIds || auth.pgIds.length === 0) return true
-  return auth.pgIds.includes(pgId) || auth.pgId === pgId
+  if (auth.role === 'staff' || auth.role === 'super_admin') return true
+  return (auth.pgIds?.includes(pgId) ?? false) || auth.pgId === pgId
 }
 
 export function requireRole(...roles: string[]) {

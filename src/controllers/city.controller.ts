@@ -13,13 +13,13 @@ import {
 
 export const createCity = async (req: Request, res: Response) => {
   try {
-    const { name, state } = req.body
+    const { name, stateId } = req.body
 
     if (!name) {
       return sendBadRequest(res, 'City name is required')
     }
 
-    const city = await CityService.createCity({ name, state })
+    const city = await CityService.createCity({ name, stateId: stateId !== undefined && stateId !== '' ? Number(stateId) : undefined })
     return sendCreated(res, city)
   } catch (error: any) {
     logger.error('Create city failed', { error })
@@ -70,9 +70,13 @@ export const getCityById = async (req: Request, res: Response) => {
 export const updateCity = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
-    const { name, state, isActive } = req.body
+    const { name, stateId, isActive } = req.body
 
-    const city = await CityService.updateCity(Number(id), { name, state, isActive })
+    const city = await CityService.updateCity(Number(id), {
+      name,
+      stateId: stateId !== undefined ? (stateId === '' || stateId === null ? null : Number(stateId)) : undefined,
+      isActive,
+    })
 
     if (!city) {
       return sendNotFound(res, 'City not found')

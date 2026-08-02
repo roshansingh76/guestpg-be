@@ -8,7 +8,6 @@ export interface CreatePGInput {
   ownerEmail: string
   addressLine1: string
   addressLine2?: string
-  nearbyMark?: string
   areaId?: number
   areaOther?: string
   cityId?: number
@@ -29,7 +28,6 @@ export interface UpdatePGInput {
   ownerEmail?: string
   addressLine1?: string
   addressLine2?: string
-  nearbyMark?: string
   areaId?: number
   areaOther?: string
   cityId?: number
@@ -55,7 +53,7 @@ export class PGService {
 
     const pgAmenityCreate = amenityIds?.length
       ? {
-          pgAmenities: {
+          amenities: {
             create: amenityIds.map((amenityId) => ({
               amenity: {
                 connect: { id: amenityId },
@@ -79,7 +77,7 @@ export class PGService {
         area: {
           select: { id: true, name: true },
         },
-        pgAmenities: {
+        amenities: {
           include: {
             amenity: true,
           },
@@ -131,7 +129,7 @@ export class PGService {
           photos: true,
           city: { select: { id: true, name: true, state: true } },
           area: { select: { id: true, name: true } },
-          pgAmenities: { include: { amenity: true } },
+          amenities: { include: { amenity: true } },
         } as any,
         skip,
         take: limit,
@@ -159,7 +157,7 @@ export class PGService {
           photos: true,
           city: { select: { id: true, name: true, state: true } },
           area: { select: { id: true, name: true } },
-          pgAmenities: { include: { amenity: true } },
+          amenities: { include: { amenity: true } },
         } as any,
     })
   }
@@ -174,7 +172,7 @@ export class PGService {
           photos: true,
           city: { select: { id: true, name: true, state: true } },
           area: { select: { id: true, name: true } },
-          pgAmenities: { include: { amenity: true } },
+          amenities: { include: { amenity: true } },
         } as any,
     })
   }
